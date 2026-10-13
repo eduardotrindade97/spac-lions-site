@@ -1,0 +1,13 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Escudos dos times: qualquer visitante pode enviar uma imagem de até
+    // 3MB. Isso permite que o próprio clube suba o escudo sem precisar de
+    // login de admin.
+    match /crests/{teamId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 3 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

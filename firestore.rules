@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Times: todo mundo lê. Qualquer visitante pode atualizar SÓ o campo
+    // logoUrl (upload de escudo pelo próprio clube). Criar/remover time ou
+    // mudar nome/categoria/grupo exige estar logado como admin.
+    match /teams/{id} {
+      allow read: if true;
+      allow create, delete: if request.auth != null;
+      allow update: if request.auth != null
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['logoUrl']);
+    }
+
+    // Jogos, artilheiros, avisos e lançamentos de placar: leitura livre,
+    // escrita só pra quem está logado no painel admin.
+    match /matches/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /scorers/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /announcements/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /matchEvents/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Súmulas: qualquer visitante pode ler e CRIAR (enviar a súmula do seu
+    // time). Só o admin logado pode aprovar, reabrir ou excluir.
+    match /sumulas/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+  }
+}

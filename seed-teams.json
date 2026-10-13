@@ -1,0 +1,19 @@
+[
+  {"id":"r01","name":"Mauá AllStars","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r02","name":"Brainrot Rugby","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r03","name":"Marlene RFC","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r04","name":"Wellington Ratos","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r05","name":"Spac Rugby","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r06","name":"Golden Caps","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r07","name":"União Feminino","categoria":"Feminino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r08","name":"Velho Oeste Rugby","categoria":"Vets","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r09","name":"Rugby FGV","categoria":"Universitário Masculino","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r10","name":"Spac Rugby (Vets)","categoria":"Vets","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r11","name":"Parrilla","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r12","name":"PSP Vets","categoria":"Vets","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r13","name":"Espm Fem","categoria":"Universitário Feminino","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r14","name":"Espm Masc","categoria":"Universitário Masculino","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r15","name":"Lasanha Rugby","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r16","name":"Old Vitorians","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null},
+  {"id":"r17","name":"Cansaders","categoria":"Masculino Adulto","grupo":null,"confirmado":true,"logoUrl":null}
+]

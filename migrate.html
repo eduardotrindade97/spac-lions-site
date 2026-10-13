@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Importar times — SPAC Lions</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<div class="admin-login" id="loginBox">
+  <h1>🦁 Importar times</h1>
+  <p>Faça login de admin pra rodar a importação única dos 17 times já cadastrados.</p>
+  <div class="field"><label>E-mail</label><input type="email" id="loginEmail"></div>
+  <div class="field"><label>Senha</label><input type="password" id="loginPass"></div>
+  <div class="msg" id="loginMsg"></div>
+  <button class="btn btn-block" id="loginSubmit">Entrar</button>
+</div>
+
+<div class="admin-shell" id="box" style="display:none;">
+  <div class="admin-top"><h1>Importar times</h1></div>
+  <p class="section-lead">Isso cria (ou atualiza) os 17 times de data/seed-teams.json no Firestore, usando os mesmos IDs (r01–r17). Rode só uma vez — rodar de novo apenas sobrescreve com os mesmos dados, sem duplicar.</p>
+  <button class="btn btn-block" id="btnImport">Importar times agora</button>
+  <div id="log" style="margin-top:16px;font-size:12.5px;color:var(--dim);white-space:pre-wrap;"></div>
+</div>
+
+<script type="module">
+  import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { db, auth } from "../js/firebase-init.js";
+
+  document.getElementById('loginSubmit').onclick = async ()=>{
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const msg = document.getElementById('loginMsg');
+    msg.textContent = 'Entrando...';
+    try{ await signInWithEmailAndPassword(auth, email, pass); }
+    catch(e){ msg.textContent = 'E-mail ou senha incorretos.'; }
+  };
+  onAuthStateChanged(auth, user=>{
+    document.getElementById('loginBox').style.display = user ? 'none' : 'block';
+    document.getElementById('box').style.display = user ? 'block' : 'none';
+  });
+
+  document.getElementById('btnImport').onclick = async ()=>{
+    const log = document.getElementById('log');
+    log.textContent = 'Carregando data/seed-teams.json...\n';
+    try{
+      const res = await fetch('../data/seed-teams.json');
+      const teams = await res.json();
+      for(const t of teams){
+        const { id, ...data } = t;
+        await setDoc(doc(db,'teams', id), data);
+        log.textContent += `✓ ${data.name}\n`;
+      }
+      log.textContent += `\nPronto! ${teams.length} times importados.`;
+    }catch(e){
+      log.textContent += '\nErro: ' + e.message;
+    }
+  };
+</script>
+</body>
+</html>
