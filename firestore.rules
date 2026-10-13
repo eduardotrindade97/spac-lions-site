@@ -3,13 +3,15 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Times: todo mundo lê. Qualquer visitante pode atualizar SÓ o campo
-    // logoUrl (upload de escudo pelo próprio clube). Criar/remover time ou
-    // mudar nome/categoria/grupo exige estar logado como admin.
+    // logoUrl (o escudo, já comprimido no navegador antes de chegar aqui —
+    // por isso o limite de tamanho abaixo, só por precaução). Criar/remover
+    // time ou mudar nome/categoria/grupo exige estar logado como admin.
     match /teams/{id} {
       allow read: if true;
       allow create, delete: if request.auth != null;
       allow update: if request.auth != null
-        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['logoUrl']);
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['logoUrl'])
+            && request.resource.data.logoUrl.size() < 400000);
     }
 
     // Jogos, artilheiros, avisos e lançamentos de placar: leitura livre,

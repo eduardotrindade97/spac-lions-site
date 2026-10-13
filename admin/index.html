@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Painel do Organizador — SPAC Lions SVNS 2026</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<div class="admin-login" id="loginBox">
+  <h1>🦁 Painel do organizador</h1>
+  <p>Acesso restrito. Entre com o e-mail e senha que a organização cadastrou no Firebase.</p>
+  <div class="field"><label>E-mail</label><input type="email" id="loginEmail" autocomplete="username"></div>
+  <div class="field"><label>Senha</label><input type="password" id="loginPass" autocomplete="current-password"></div>
+  <div class="msg" id="loginMsg"></div>
+  <button class="btn btn-block" id="loginSubmit">Entrar</button>
+</div>
+
+<div class="admin-shell" id="adminShell" style="display:none;">
+  <div class="admin-top">
+    <h1>🦁 Painel do organizador</h1>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="who" id="whoAmI"></span>
+      <button class="btn-ghost" id="logoutBtn">Sair</button>
+    </div>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-atab="times">Times</button>
+    <button class="admin-tab" data-atab="jogos">Jogos</button>
+    <button class="admin-tab" data-atab="placar">Placar ao vivo</button>
+    <button class="admin-tab" data-atab="artilheiros">Artilheiros</button>
+    <button class="admin-tab" data-atab="sumulas">Súmulas</button>
+    <button class="admin-tab" data-atab="avisos">Avisos</button>
+  </div>
+
+  <!-- TIMES -->
+  <div class="admin-panel active" id="atab-times">
+    <div class="field"><label>Nome do time</label><input id="fTeamName" placeholder="Ex: Golden Caps"></div>
+    <div class="field-grid2">
+      <div class="field"><label>Categoria</label>
+        <select id="fTeamCat">
+          <option>Masculino Adulto</option><option>Feminino Adulto</option><option>Vets</option>
+          <option>Juvenil</option><option>Universitário Masculino</option><option>Universitário Feminino</option>
+        </select>
+      </div>
+      <div class="field"><label>Grupo (opcional)</label><input id="fTeamGrupo" placeholder="Ex: A"></div>
+    </div>
+    <button class="btn" id="btnAddTeam">Adicionar time</button>
+    <div style="margin-top:16px;" id="adminTeamList"></div>
+  </div>
+
+  <!-- JOGOS -->
+  <div class="admin-panel" id="atab-jogos">
+    <div class="field-grid2">
+      <div class="field"><label>Categoria</label>
+        <select id="fMatchCat">
+          <option>Masculino Adulto</option><option>Feminino Adulto</option><option>Vets</option>
+          <option>Juvenil</option><option>Universitário Masculino</option><option>Universitário Feminino</option>
+        </select>
+      </div>
+      <div class="field"><label>Fase</label>
+        <select id="fMatchFase">
+          <option value="grupo">Fase de grupos</option><option value="quartas">Quartas</option>
+          <option value="semi">Semifinal</option><option value="final">Final</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid2">
+      <div class="field"><label>Time A</label><select id="fMatchTeamA"></select></div>
+      <div class="field"><label>Time B</label><select id="fMatchTeamB"></select></div>
+    </div>
+    <div class="field-grid2">
+      <div class="field"><label>Data</label>
+        <select id="fMatchData"><option value="2026-12-12">Sáb 12/12</option><option value="2026-12-13">Dom 13/12</option></select>
+      </div>
+      <div class="field"><label>Horário</label><input id="fMatchHorario" placeholder="Ex: 09:20"></div>
+    </div>
+    <div class="field"><label>Campo</label><input id="fMatchCampo" placeholder="Ex: Campo 1"></div>
+    <button class="btn" id="btnAddMatch">Adicionar jogo</button>
+    <div style="margin-top:16px;" id="adminMatchList"></div>
+  </div>
+
+  <!-- PLACAR AO VIVO -->
+  <div class="admin-panel" id="atab-placar">
+    <div class="field"><label>Jogo</label><select id="fPlacarMatch"></select></div>
+    <div id="placarScoreboard"></div>
+    <div class="roster-cols">
+      <div><div class="roster-head" id="placarColHeadA">Time A</div><div id="placarRosterA"></div></div>
+      <div><div class="roster-head" id="placarColHeadB">Time B</div><div id="placarRosterB"></div></div>
+    </div>
+    <h2 style="font-size:13px;margin:18px 0 8px;color:var(--dim);">Últimos lançamentos</h2>
+    <div class="event-feed" id="placarEvents"></div>
+  </div>
+
+  <!-- ARTILHEIROS -->
+  <div class="admin-panel" id="atab-artilheiros">
+    <div class="field"><label>Nome do atleta</label><input id="fScorerName" placeholder="Ex: João Silva"></div>
+    <div class="field"><label>Time</label><select id="fScorerTeam"></select></div>
+    <button class="btn" id="btnAddScorer">Adicionar atleta</button>
+    <div style="margin-top:16px;" id="adminScorerList"></div>
+  </div>
+
+  <!-- SÚMULAS -->
+  <div class="admin-panel" id="atab-sumulas">
+    <div class="pill-row" id="adminSumFilter"></div>
+    <div id="adminSumulaList"></div>
+  </div>
+
+  <!-- AVISOS -->
+  <div class="admin-panel" id="atab-avisos">
+    <div class="field"><label>Mensagem</label><textarea id="fAnnText" rows="3" placeholder="Ex: Jogos do Campo 2 atrasados em 15min"></textarea></div>
+    <button class="btn" id="btnAddAnn">Publicar aviso</button>
+    <div style="margin-top:16px;" id="adminAnnList"></div>
+  </div>
+
+</div>
+
+<script type="module" src="../js/admin.js"></script>
+</body>
+</html>

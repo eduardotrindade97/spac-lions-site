@@ -1,8 +1,7 @@
 import {
   collection, doc, addDoc, updateDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { db, storage, CATS, EVENT_DATE } from "./firebase-init.js";
+import { db, CATS, EVENT_DATE } from "./firebase-init.js";
 
 // ---------- state ----------
 let TEAMS = [], MATCHES = [], ANNOUNCEMENTS = [], SCORERS = [], SUMULAS = [];
@@ -225,7 +224,7 @@ function renderMural(){
   });
 }
 
-// ---------- crest upload ----------
+// ---------- crest upload (sem Firebase Storage: comprime e guarda no Firestore) ----------
 const crestSheet = document.getElementById('crestSheet');
 function openCrestSheet(teamId){
   crestTargetTeamId = teamId;
@@ -235,22 +234,44 @@ function openCrestSheet(teamId){
   crestSheet.classList.add('open');
 }
 document.getElementById('crestClose').onclick = ()=> crestSheet.classList.remove('open');
+
+// Redimensiona pra um quadrado pequeno e comprime em JPEG — fica bem
+// abaixo do limite de 1MB por documento do Firestore (geralmente poucos KB).
+function compressImageToDataUrl(file, maxSize=160, quality=0.8){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = ()=>{
+      img.onerror = reject;
+      img.onload = ()=>{
+        const side = Math.min(img.width, img.height);
+        const sx = (img.width-side)/2, sy = (img.height-side)/2;
+        const canvas = document.createElement('canvas');
+        canvas.width = maxSize; canvas.height = maxSize;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, maxSize, maxSize);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 document.getElementById('crestSubmit').onclick = async ()=>{
   const file = document.getElementById('crestFile').files[0];
   const msg = document.getElementById('crestMsg');
   if(!file || !crestTargetTeamId){ msg.textContent = 'Escolha uma imagem primeiro.'; return; }
-  if(file.size > 3*1024*1024){ msg.textContent = 'Imagem muito grande (máx. 3MB).'; return; }
-  msg.textContent = 'Enviando...';
+  if(!file.type.startsWith('image/')){ msg.textContent = 'Escolha um arquivo de imagem.'; return; }
+  if(file.size > 8*1024*1024){ msg.textContent = 'Imagem muito grande (máx. 8MB).'; return; }
+  msg.textContent = 'Processando...';
   try{
-    const path = `crests/${crestTargetTeamId}/${Date.now()}_${file.name}`;
-    const sref = ref(storage, path);
-    await uploadBytes(sref, file);
-    const url = await getDownloadURL(sref);
-    await updateDoc(doc(db,'teams',crestTargetTeamId), { logoUrl: url });
+    const dataUrl = await compressImageToDataUrl(file);
+    await updateDoc(doc(db,'teams',crestTargetTeamId), { logoUrl: dataUrl });
     msg.textContent = 'Escudo enviado!';
     setTimeout(()=> crestSheet.classList.remove('open'), 900);
   }catch(e){
-    msg.textContent = 'Erro ao enviar. Tenta de novo em alguns segundos.';
+    msg.textContent = 'Erro ao processar a imagem. Tenta outra foto.';
     console.error(e);
   }
 };

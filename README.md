@@ -27,11 +27,9 @@ passos abaixo (feitos uma vez, em painéis visuais, sem escrever código).
 3. No menu lateral, **Compilação → Firestore Database** → **Criar banco de
    dados** → modo produção → escolha a região `southamerica-east1 (São
    Paulo)` → Ativar.
-4. **Compilação → Storage** → **Começar** → modo produção → mesma região →
-   Concluído. (é aqui que ficam as imagens dos escudos dos times)
-5. **Compilação → Authentication** → **Começar** → na aba "Sign-in method",
+4. **Compilação → Authentication** → **Começar** → na aba "Sign-in method",
    ative **E-mail/senha**.
-6. Ainda em Authentication, aba **Users** → **Add user** → cadastre o e-mail
+5. Ainda em Authentication, aba **Users** → **Add user** → cadastre o e-mail
    e senha de cada pessoa que vai administrar o painel (você, e quem mais
    quiser). Pra adicionar mais gente depois, é só voltar aqui — sem precisar
    mexer em nada no código.
@@ -47,14 +45,19 @@ passos abaixo (feitos uma vez, em painéis visuais, sem escrever código).
 
 ## Passo 3 — Publicar as regras de segurança
 
-Essas regras são o que garante que qualquer visitante só consegue ver e
-enviar súmula/escudo, e que só quem fez login no painel consegue editar
-time, jogo, placar e avisos.
+Essa regra é o que garante que qualquer visitante só consegue ver e enviar
+súmula/escudo, e que só quem fez login no painel consegue editar time, jogo,
+placar e avisos.
 
 1. Firestore Database → aba **Regras** → apague o conteúdo e cole o de
    **`firestore.rules`** (está neste projeto) → **Publicar**.
-2. Storage → aba **Regras** → apague o conteúdo e cole o de
-   **`storage.rules`** → **Publicar**.
+
+> Não usamos o Firebase Storage de propósito — o Google passou a exigir
+> cadastrar um cartão (plano "Blaze") só pra habilitar o Storage, mesmo no
+> uso gratuito. Pra não precisar disso, o escudo de cada time é comprimido
+> no próprio navegador do representante do clube e guardado como imagem
+> pequena direto no Firestore (campo `logoUrl` do time). Zero cartão, zero
+> custo, funciona igual pro usuário final.
 
 ## Passo 4 — Publicar o site (Vercel, grátis)
 
@@ -110,10 +113,15 @@ migrados.
 - **Firestore** (banco de dados do Firebase) entrega tempo real de verdade:
   qualquer alteração no painel admin aparece no site público na hora, sem
   recarregar a página.
-- **Regras do Firestore/Storage** são aplicadas no servidor do Google, não
-  no navegador — ou seja, mesmo que alguém tente mexer "por fora" da
-  interface (abrindo o console do navegador), só quem estiver autenticado
-  como admin consegue escrever nas coleções restritas.
+- **Regras do Firestore** são aplicadas no servidor do Google, não no
+  navegador — ou seja, mesmo que alguém tente mexer "por fora" da interface
+  (abrindo o console do navegador), só quem estiver autenticado como admin
+  consegue escrever nas coleções restritas.
+- **Sem Firebase Storage, sem cartão cadastrado:** o Google exige plano
+  pago (Blaze) só pra habilitar o Storage, mesmo dentro da faixa grátis.
+  Contornamos isso comprimindo o escudo no navegador e guardando como
+  imagem pequena no próprio Firestore — nenhuma etapa deste projeto pede
+  cartão de crédito.
 - **Vercel** hospeda arquivos estáticos de graça, com HTTPS automático e
   deploy automático toda vez que você atualiza o código no GitHub.
 - Tudo dentro da faixa gratuita do Firebase/Vercel pro volume de um
