@@ -1,7 +1,7 @@
 import {
   collection, doc, addDoc, updateDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { db, CATS, EVENT_DATE } from "./firebase-init.js";
+import { db, CATS, EVENT_DATE, SLOT_MIN } from "./firebase-init.js";
 
 // ---------- state ----------
 const FIELDS = ['Grand Stand', 'Campo 2'];
@@ -26,6 +26,42 @@ function fmtTime(ts){
   if(!ts) return '';
   const d = new Date(ts);
   return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+function fmtHM(ts){
+  if(!ts) return '--:--';
+  return new Date(ts).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+}
+// Converte "data" (YYYY-MM-DD) + "horario" (HH:MM) cadastrados no jogo pra timestamp.
+function matchTimestamp(dataStr, horarioStr){
+  if(!dataStr || !horarioStr) return null;
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(horarioStr).trim());
+  if(!m) return null;
+  const d = new Date(dataStr+'T00:00:00-03:00');
+  d.setHours(parseInt(m[1],10), parseInt(m[2],10), 0, 0);
+  return d.getTime();
+}
+// Calcula, por campo, o atraso acumulado a partir dos jogos que já tiveram
+// startedAt registrado (botão "Iniciar jogo" no admin) e projeta o horário
+// previsto dos jogos seguintes que ainda não começaram naquele campo.
+function computeFieldDelays(){
+  const out = {};
+  FIELDS.forEach(field=>{
+    const list = MATCHES.filter(m=>(m.campo||'')===field)
+      .sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.horario||'').localeCompare(b.horario||''));
+    let cursorDelayMs = 0;
+    list.forEach(m=>{
+      const schedTs = matchTimestamp(m.data, m.horario);
+      if(m.startedAt){
+        const actualDelayMs = m.startedAt - (schedTs ?? m.startedAt);
+        cursorDelayMs = Math.max(0, actualDelayMs);
+        out[m.id] = { delayMin: Math.round(cursorDelayMs/60000), estimatedTs: m.startedAt, scheduledTs: schedTs };
+      } else {
+        const estimatedTs = schedTs!=null ? schedTs + cursorDelayMs : null;
+        out[m.id] = { delayMin: Math.round(cursorDelayMs/60000), estimatedTs, scheduledTs: schedTs };
+      }
+    });
+  });
+  return out;
 }
 
 // ---------- navigation ----------
@@ -97,14 +133,17 @@ function renderCronograma(){
 
   const el = document.getElementById('cronoList');
   if(list.length===0){ el.innerHTML = '<p class="empty">Nenhum jogo cadastrado ainda.</p>'; return; }
+  const delays = computeFieldDelays();
   el.innerHTML = list.map(m=>{
     const dot = m.status==='ao_vivo' ? 'live' : (m.status==='encerrado' ? 'done' : 'sched');
     const scoreTxt = (m.status!=='agendado') ? `${m.scoreA??0} – ${m.scoreB??0}` : '';
+    const d = delays[m.id];
+    const delayTag = (m.status==='agendado' && d && d.delayMin>0) ? ` <span class="delay-tag">atraso ~${d.delayMin}min</span>` : '';
     return `<div class="match-row">
       <div class="mtime">${m.horario||'--:--'}<span class="d">${m.data==='2026-12-13'?'Dom':'Sáb'}</span></div>
       <div class="mmid">
         <div class="mteams"><span class="status-dot ${dot}"></span>${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)}</div>
-        <div class="mmeta">${m.categoria} · ${faseLabel(m.fase)}${m.campo?(' · '+m.campo):''}</div>
+        <div class="mmeta">${m.categoria} · ${faseLabel(m.fase)}${m.campo?(' · '+m.campo):''}${delayTag}</div>
       </div>
       <div class="mscore">${scoreTxt}</div>
     </div>`;
@@ -210,6 +249,7 @@ function renderCampos(){
   const board = document.getElementById('camposBoard');
   if(list.length===0){ board.innerHTML = '<p class="empty">Nenhum jogo cadastrado nesse campo ainda.</p>'; return; }
 
+  const delays = computeFieldDelays();
   let lastDay = null;
   const parts = [];
   list.forEach(m=>{
@@ -224,15 +264,26 @@ function renderCampos(){
       : `<div class="fmc-score">${m.scoreA??0}<span>–</span>${m.scoreB??0}</div>`;
     const statusTxt = m.status==='ao_vivo' ? 'AO VIVO' : (m.status==='encerrado' ? 'Encerrado' : 'Agendado');
     const dot = m.status==='ao_vivo' ? 'live' : (m.status==='encerrado' ? 'done' : 'sched');
+    const d = delays[m.id];
+    let timeLine = m.horario||'--:--';
+    let delayLine = '';
+    if(m.status==='ao_vivo' && m.startedAt){
+      timeLine = `Começou às ${fmtHM(m.startedAt)}`;
+      if(d && d.delayMin>0) delayLine = `<div class="fmc-delay">atraso de ~${d.delayMin}min em relação ao previsto</div>`;
+    } else if(isFuture && d && d.delayMin>0 && d.estimatedTs){
+      timeLine = `${m.horario||'--:--'} <span class="fmc-strike">prev.</span> ${fmtHM(d.estimatedTs)}`;
+      delayLine = `<div class="fmc-delay">atraso de ~${d.delayMin}min no campo</div>`;
+    }
     parts.push(`
       <div class="field-match-card${m.status==='ao_vivo'?' is-live':''}">
-        <div class="fmc-top"><span class="fmc-time">${m.horario||'--:--'}</span><span class="badge ${m.status==='ao_vivo'?'badge-live':(m.status==='encerrado'?'badge-good':'badge-warn')}">${statusTxt}</span></div>
+        <div class="fmc-top"><span class="fmc-time">${timeLine}</span><span class="badge ${m.status==='ao_vivo'?'badge-live':(m.status==='encerrado'?'badge-good':'badge-warn')}">${statusTxt}</span></div>
         <div class="fmc-vs">
           <div class="fmc-team"><div class="fmc-crest">${crestHtml(tA)}</div><div class="fmc-tname">${teamName(m.teamAId,m.teamAName)}</div></div>
           ${scoreHtml}
           <div class="fmc-team"><div class="fmc-crest">${crestHtml(tB)}</div><div class="fmc-tname">${teamName(m.teamBId,m.teamBName)}</div></div>
         </div>
         <div class="fmc-meta"><span class="status-dot ${dot}"></span>${m.categoria} · ${faseLabel(m.fase)}</div>
+        ${delayLine}
       </div>`);
   });
   board.innerHTML = parts.join('');

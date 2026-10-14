@@ -15,3 +15,10 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const CATS = ["Masculino Adulto","Feminino Adulto","Vets","Juvenil","Universitário Masculino","Universitário Feminino"];
 export const EVENT_DATE = new Date('2026-12-12T08:00:00-03:00');
+
+// Tempos padrão de uma partida de rugby sevens, usados pra sugerir horários
+// no cronograma e pra calcular atraso em tempo real quando um jogo começa.
+export const GAME_MIN = 14;      // duração do jogo (2x7min)
+export const BREAK_MIN = 1.5;    // intervalo entre jogos
+export const ENTRY_MIN = 1.5;    // entrada em campo + kick off
+export const SLOT_MIN = GAME_MIN + BREAK_MIN + ENTRY_MIN; // 17min por partida, de kickoff a kickoff

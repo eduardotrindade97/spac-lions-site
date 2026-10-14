@@ -4,7 +4,7 @@ import {
 import {
   signInWithEmailAndPassword, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { db, auth, CATS } from "./firebase-init.js";
+import { db, auth, CATS, SLOT_MIN } from "./firebase-init.js";
 
 // ---------- login ----------
 const loginBox = document.getElementById('loginBox');
@@ -60,6 +60,18 @@ function fmtTime(ts){
   if(!ts) return '';
   return new Date(ts).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
 }
+function fmtHM(ts){
+  if(!ts) return '--:--';
+  return new Date(ts).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+}
+function matchTimestamp(dataStr, horarioStr){
+  if(!dataStr || !horarioStr) return null;
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(horarioStr).trim());
+  if(!m) return null;
+  const d = new Date(dataStr+'T00:00:00-03:00');
+  d.setHours(parseInt(m[1],10), parseInt(m[2],10), 0, 0);
+  return d.getTime();
+}
 function matchLabel(m){
   const tag = m.status==='ao_vivo' ? ' · AO VIVO' : (m.status==='encerrado' ? ' · encerrado' : '');
   return `${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)} — ${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}${m.campo?(' · '+m.campo):''}${tag}`;
@@ -98,6 +110,25 @@ function fillTeamSelects(){
 }
 document.getElementById('fMatchCat').addEventListener('change', fillTeamSelects);
 
+// Sugere o próximo horário livre no campo escolhido: pega o último jogo
+// cadastrado nesse campo/dia e soma 17min (14min de jogo + 1:30 intervalo +
+// 1:30 entrada em campo/kickoff). Só preenche se o campo horário estiver vazio.
+function suggestHorario(){
+  const campo = document.getElementById('fMatchCampo').value;
+  const data = document.getElementById('fMatchData').value;
+  const horarioInput = document.getElementById('fMatchHorario');
+  if(horarioInput.value.trim()) return;
+  const sameSlot = MATCHES.filter(m=>m.campo===campo && m.data===data && m.horario)
+    .sort((a,b)=>String(a.horario).localeCompare(String(b.horario)));
+  if(sameSlot.length===0) return;
+  const last = sameSlot[sameSlot.length-1];
+  const ts = matchTimestamp(last.data, last.horario);
+  if(ts==null) return;
+  horarioInput.value = fmtHM(ts + SLOT_MIN*60000);
+}
+document.getElementById('fMatchCampo').addEventListener('change', suggestHorario);
+document.getElementById('fMatchData').addEventListener('change', suggestHorario);
+
 document.getElementById('btnAddMatch').onclick = async ()=>{
   const teamAId = document.getElementById('fMatchTeamA').value;
   const teamBId = document.getElementById('fMatchTeamB').value;
@@ -108,11 +139,12 @@ document.getElementById('btnAddMatch').onclick = async ()=>{
     teamAId, teamBId,
     data: document.getElementById('fMatchData').value,
     horario: document.getElementById('fMatchHorario').value.trim(),
-    campo: document.getElementById('fMatchCampo').value.trim(),
+    campo: document.getElementById('fMatchCampo').value,
     status: 'agendado', scoreA: null, scoreB: null
   });
+  // Mantém campo/data selecionados (facilita cadastrar vários jogos seguidos
+  // no mesmo campo) e limpa o horário pra já sugerir o próximo slot de 17min.
   document.getElementById('fMatchHorario').value = '';
-  document.getElementById('fMatchCampo').value = '';
 };
 
 // ---------- ARTILHEIROS ----------
@@ -160,7 +192,7 @@ async function scorePoint(matchId, teamSide, playerName, tipo, pontos){
   const scoreField = teamSide==='A' ? 'scoreA' : 'scoreB';
   const newScore = (m[scoreField]||0) + pontos;
   const patch = { [scoreField]: newScore };
-  if(m.status==='agendado') patch.status = 'ao_vivo';
+  if(m.status==='agendado'){ patch.status = 'ao_vivo'; if(!m.startedAt) patch.startedAt = Date.now(); }
   await updateDoc(doc(db,'matches',matchId), patch);
   await addDoc(collection(db,'matchEvents'), {
     matchId, teamSide, teamId, playerName, tipo, pontos, scorerId, createdAt: Date.now()
@@ -206,10 +238,23 @@ function renderAdminPlacar(){
   }
   const nameA = teamName(m.teamAId,m.teamAName), nameB = teamName(m.teamBId,m.teamBName);
   headA.textContent = nameA; headB.textContent = nameB;
-  scoreboard.innerHTML = `<div class="scoreboard">
+  let startHtml = '';
+  if(m.status==='agendado'){
+    startHtml = `<div class="start-box">
+      <div class="start-info">Previsto para ${m.horario||'--:--'}${m.campo?(' · '+m.campo):''}. Dê START quando o jogo realmente começar — assim o atraso é calculado pros próximos jogos do campo.</div>
+      <button class="btn" id="btnStartMatch">Iniciar jogo (START)</button>
+    </div>`;
+  } else if(m.status==='ao_vivo' && m.startedAt){
+    const schedTs = matchTimestamp(m.data, m.horario);
+    const delayMin = schedTs!=null ? Math.round((m.startedAt-schedTs)/60000) : null;
+    startHtml = `<div class="start-box start-box-live">Começou às <b>${fmtHM(m.startedAt)}</b>${(delayMin!==null && delayMin>0) ? ` · atraso de ~${delayMin}min` : ''}</div>`;
+  }
+  scoreboard.innerHTML = `${startHtml}<div class="scoreboard">
     <div class="side"><b>${escapeHtml(nameA)}</b><div class="sc">${m.scoreA??0}</div></div>
     <div class="vs">x</div>
     <div class="side"><b>${escapeHtml(nameB)}</b><div class="sc">${m.scoreB??0}</div></div></div>`;
+  const startBtn = document.getElementById('btnStartMatch');
+  if(startBtn) startBtn.onclick = ()=> updateDoc(doc(db,'matches',m.id), { status:'ao_vivo', startedAt: Date.now() });
   function rosterHtml(teamId, teamSide){
     const roster = getApprovedRoster(teamId, m.data);
     if(roster===null) return '<p class="no-roster">Nenhuma súmula aprovada pra esse time. Aprove em Súmulas, ou lance manualmente em Artilheiros.</p>';
@@ -306,7 +351,12 @@ function renderAdminLists(){
     </div></div>`
   ).join('') || '<p class="empty">Nenhum jogo ainda.</p>';
   mEl.querySelectorAll('[data-del-match]').forEach(b=> b.onclick = ()=> deleteDoc(doc(db,'matches',b.dataset.delMatch)));
-  mEl.querySelectorAll('[data-status]').forEach(sel=> sel.onchange = ()=> updateDoc(doc(db,'matches',sel.dataset.status), {status:sel.value}));
+  mEl.querySelectorAll('[data-status]').forEach(sel=> sel.onchange = ()=>{
+    const match = MATCHES.find(x=>x.id===sel.dataset.status);
+    const patch = { status: sel.value };
+    if(sel.value==='ao_vivo' && match && !match.startedAt) patch.startedAt = Date.now();
+    updateDoc(doc(db,'matches',sel.dataset.status), patch);
+  });
   mEl.querySelectorAll('[data-score-a]').forEach(inp=> inp.onchange = ()=> updateDoc(doc(db,'matches',inp.dataset.scoreA), {scoreA: inp.value===''?null:parseInt(inp.value)}));
   mEl.querySelectorAll('[data-score-b]').forEach(inp=> inp.onchange = ()=> updateDoc(doc(db,'matches',inp.dataset.scoreB), {scoreB: inp.value===''?null:parseInt(inp.value)}));
 
