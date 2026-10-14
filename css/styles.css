@@ -172,20 +172,21 @@ svg.ico{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-wi
 .quick-btn{
   background:linear-gradient(165deg, var(--navy-3), var(--navy-2));
   border:1px solid var(--line);border-radius:var(--radius-sm);
-  padding:16px 14px;text-align:left;color:var(--white);cursor:pointer;
-  display:flex;flex-direction:column;gap:10px;
+  padding:12px 14px;text-align:left;color:var(--white);cursor:pointer;
+  display:flex;flex-direction:row;align-items:center;gap:12px;
   box-shadow:var(--shadow-sm);
   transition:transform .12s ease, border-color .12s ease;
 }
 .quick-btn:active{transform:scale(0.97);border-color:var(--gold-soft);}
 .quick-btn .q-ico{
-  width:42px;height:42px;border-radius:11px;
+  flex:0 0 auto;
+  width:44px;height:44px;border-radius:11px;
   background:linear-gradient(165deg, var(--gold) 0%, #C89A50 100%);
   display:flex;align-items:center;justify-content:center;color:var(--gold-ink);
   box-shadow:var(--shadow-sm);
 }
-.quick-btn .q-ico svg.ico{width:22px;height:22px;}
-.quick-btn .q-label{font-size:14.5px;font-weight:800;letter-spacing:-.005em;color:var(--white);}
+.quick-btn .q-ico svg.ico{width:23px;height:23px;}
+.quick-btn .q-label{flex:1;font-size:14px;font-weight:800;letter-spacing:-.005em;color:var(--white);line-height:1.2;}
 
 /* ---------- FILTER PILLS ---------- */
 .pill-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none;}
