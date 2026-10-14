@@ -6,9 +6,9 @@
 // ignorar/não colar, esse projeto não usa Firebase Storage de propósito
 // (veja o README: evita exigir cartão cadastrado).
 export const firebaseConfig = {
-  apiKey: "COLE_AQUI",
-  authDomain: "COLE_AQUI.firebaseapp.com",
-  projectId: "COLE_AQUI",
-  messagingSenderId: "COLE_AQUI",
-  appId: "COLE_AQUI"
+  apiKey: "AIzaSyDE_eBHy8pLH6YZ2emzC7IRiH9MdMcwyUo",
+  authDomain: "spac-lions-2026.firebaseapp.com",
+  projectId: "spac-lions-2026",
+  messagingSenderId: "3054003376",
+  appId: "1:3054003376:web:4a7f969228fd28c874c775"
 };
