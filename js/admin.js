@@ -68,9 +68,16 @@ function faseLabel(f){
   return {grupo:'Fase de grupos', quartas:'Quartas de final', semi:'Semifinal', final:'Final'}[f] || f;
 }
 // Nome de exibição do campo (o valor salvo no banco continua "Grand Stand"/"Campo 2" pra não quebrar jogos já cadastrados).
-const CAMPO_LABELS = { 'Grand Stand':'Grand Ground (Campo 1)', 'Campo 2':'Lions Field (Campo 2)' };
+const CAMPO_NAMES = { 'Grand Stand':{name:'Grand Ground', sub:'Campo 1'}, 'Campo 2':{name:'Lions Field', sub:'Campo 2'} };
 function campoLabel(campo){
-  return CAMPO_LABELS[campo] || (campo||'');
+  const c = CAMPO_NAMES[campo];
+  return c ? `${c.name} (${c.sub})` : (campo||'');
+}
+// versão em HTML: nome do campo em destaque, "(Campo N)" menor e discreto ao lado.
+function campoLabelHtml(campo){
+  const c = CAMPO_NAMES[campo];
+  if(!c) return escapeHtml(campo||'');
+  return `${escapeHtml(c.name)} <span class="campo-sub">(${escapeHtml(c.sub)})</span>`;
 }
 function matchTimestamp(dataStr, horarioStr){
   if(!dataStr || !horarioStr) return null;
@@ -300,7 +307,7 @@ function renderAdminPlacar(){
   let startHtml = '';
   if(m.status==='agendado'){
     startHtml = `<div class="start-box">
-      <div class="start-info">Previsto para ${m.horario||'--:--'}${m.campo?(' · '+campoLabel(m.campo)):''}. Dê START quando o jogo realmente começar — assim o atraso é calculado pros próximos jogos do campo.</div>
+      <div class="start-info">Previsto para ${m.horario||'--:--'}${m.campo?(' · '+campoLabelHtml(m.campo)):''}. Dê START quando o jogo realmente começar — assim o atraso é calculado pros próximos jogos do campo.</div>
       <button class="btn" id="btnStartMatch">Iniciar jogo (START)</button>
     </div>`;
   } else if(m.status==='ao_vivo' && m.startedAt){

@@ -383,6 +383,8 @@ hr.div{border:none;border-top:1px solid var(--line);margin:20px 0;}
 
 .start-box{background:var(--gold-soft);border:1px solid rgba(217,178,104,0.3);border-radius:var(--radius-sm);padding:13px 14px;margin-bottom:12px;}
 .start-info{font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:10px;}
+/* "(Campo N)" sempre menor e mais discreto que o nome batizado do campo */
+.campo-sub{font-size:.78em;font-weight:600;opacity:.65;letter-spacing:0;text-transform:none;}
 .start-box-live{background:var(--live-soft);border-color:rgba(236,107,87,0.3);font-size:12.5px;font-weight:700;color:var(--white);padding:12px 14px;}
 .start-fix{display:flex;align-items:center;gap:7px;margin-top:9px;font-weight:600;font-size:11px;}
 .start-fix label{color:var(--dim);font-weight:600;white-space:nowrap;}
