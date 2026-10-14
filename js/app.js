@@ -224,14 +224,34 @@ function renderPlacares(){
     </div>`;
   }).join('');
 
-  // live strip on home — no máximo 2 jogos simultâneos (1 por campo), mostra os dois
+  renderHomeLive();
+}
+
+// Placar ao vivo em destaque na home: quando há jogo rolando, esse espaço
+// vira o telão (emblema, placar, bolinha vermelha piscando) e some com a
+// contagem regressiva — que deixa de fazer sentido com o evento já rolando.
+function renderHomeLive(){
   const liveOnes = MATCHES.filter(m=>m.status==='ao_vivo');
   const strip = document.getElementById('liveStrip');
-  if(liveOnes.length===0){ strip.style.display='none'; strip.innerHTML=''; }
-  else {
-    strip.style.display='flex';
-    strip.innerHTML = liveOnes.map(m=>`<div class="live-chip"><span class="now-live-dot"></span><span class="lc-field">${escapeHtml(m.campo||'Ao vivo')}</span><span class="lc-match">${teamName(m.teamAId,m.teamAName)} ${m.scoreA??0} – ${m.scoreB??0} ${teamName(m.teamBId,m.teamBName)}</span></div>`).join('');
+  const countdown = document.getElementById('countdownRow');
+  if(liveOnes.length===0){
+    strip.style.display='none'; strip.innerHTML='';
+    countdown.style.display='flex';
+    return;
   }
+  countdown.style.display='none';
+  strip.style.display='flex';
+  strip.innerHTML = liveOnes.map(m=>{
+    const tA = TEAMS.find(t=>t.id===m.teamAId), tB = TEAMS.find(t=>t.id===m.teamBId);
+    return `<div class="live-chip">
+      <div class="lc-top"><span class="now-live-dot"></span><span class="lc-field">${escapeHtml(m.campo||'Ao vivo')}</span></div>
+      <div class="lc-vs">
+        <div class="lc-team"><div class="lc-crest">${crestHtml(tA)}</div><span>${teamName(m.teamAId,m.teamAName)}</span></div>
+        <div class="lc-score">${m.scoreA??0}<span>–</span>${m.scoreB??0}</div>
+        <div class="lc-team"><div class="lc-crest">${crestHtml(tB)}</div><span>${teamName(m.teamBId,m.teamBName)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ---------- CAMPOS (visão por campo, estilo telão) ----------
