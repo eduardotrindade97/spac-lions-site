@@ -68,7 +68,7 @@ function faseLabel(f){
   return {grupo:'Fase de grupos', quartas:'Quartas de final', semi:'Semifinal', final:'Final'}[f] || f;
 }
 // Nome de exibição do campo (o valor salvo no banco continua "Grand Stand"/"Campo 2" pra não quebrar jogos já cadastrados).
-const CAMPO_NAMES = { 'Grand Stand':{name:'Grand Ground', sub:'Campo 1'}, 'Campo 2':{name:'Lions Field', sub:'Campo 2'} };
+const CAMPO_NAMES = { 'Grand Stand':{name:'Main Ground', sub:'Campo 1'}, 'Campo 2':{name:'Lions Field', sub:'Campo 2'} };
 function campoLabel(campo){
   const c = CAMPO_NAMES[campo];
   return c ? `${c.name} (${c.sub})` : (campo||'');
@@ -470,7 +470,7 @@ function renderAdminLists(){
       </select>
       <input type="text" placeholder="HH:MM" style="width:46px;" value="${escapeHtml(m.horario||'')}" data-horario="${m.id}">
       <select data-campo="${m.id}">
-        <option value="Grand Stand" ${m.campo==='Grand Stand'?'selected':''}>Grand Ground (Campo 1)</option>
+        <option value="Grand Stand" ${m.campo==='Grand Stand'?'selected':''}>Main Ground (Campo 1)</option>
         <option value="Campo 2" ${m.campo==='Campo 2'?'selected':''}>Lions Field (Campo 2)</option>
       </select>
       <select data-status="${m.id}">

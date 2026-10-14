@@ -23,7 +23,7 @@ function escapeHtml(s){
   return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 // Nome de exibição do campo (o valor salvo no banco continua "Grand Stand"/"Campo 2" pra não quebrar jogos já cadastrados).
-const CAMPO_NAMES = { 'Grand Stand':{name:'Grand Ground', sub:'Campo 1'}, 'Campo 2':{name:'Lions Field', sub:'Campo 2'} };
+const CAMPO_NAMES = { 'Grand Stand':{name:'Main Ground', sub:'Campo 1'}, 'Campo 2':{name:'Lions Field', sub:'Campo 2'} };
 function campoLabel(campo){
   const c = CAMPO_NAMES[campo];
   return c ? `${c.name} (${c.sub})` : (campo||'');
