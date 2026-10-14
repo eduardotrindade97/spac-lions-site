@@ -24,6 +24,7 @@
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
   <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
   <symbol id="i-board" viewBox="0 0 24 24"><rect x="2.5" y="5" width="8.5" height="13" rx="2"/><rect x="13" y="5" width="8.5" height="13" rx="2"/><path d="M4.5 10h4.5M15 10h4.5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-7.1 7-12a7 7 0 1 0-14 0c0 4.9 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></symbol>
 </svg>
 
 <div class="app" id="app">
@@ -45,6 +46,7 @@
         <button class="quick-btn" data-goto="grupos"><span class="q-ico"><svg class="ico"><use href="#i-trophy"/></svg></span><span class="q-label">Grupos</span></button>
         <button class="quick-btn" data-goto="placares"><span class="q-ico"><svg class="ico"><use href="#i-live"/></svg></span><span class="q-label">Placares</span></button>
         <button class="quick-btn" data-goto="campos"><span class="q-ico"><svg class="ico"><use href="#i-board"/></svg></span><span class="q-label">Jogos ao vivo</span></button>
+        <button class="quick-btn" data-goto="mapa"><span class="q-ico"><svg class="ico"><use href="#i-pin"/></svg></span><span class="q-label">Mapa do clube</span></button>
         <button class="quick-btn" data-goto="times"><span class="q-ico"><svg class="ico"><use href="#i-shirt"/></svg></span><span class="q-label">Times</span></button>
         <button class="quick-btn" data-goto="artilharia"><span class="q-ico"><svg class="ico"><use href="#i-target"/></svg></span><span class="q-label">Artilharia</span></button>
         <button class="quick-btn" data-goto="sumula"><span class="q-ico"><svg class="ico"><use href="#i-clipboard"/></svg></span><span class="q-label">Enviar súmula</span></button>
@@ -92,11 +94,24 @@
   <!-- ================= CAMPOS (visão por campo) ================= -->
   <div class="screen" id="screen-campos">
     <div class="section">
-      <div class="section-head"><h2>Jogos ao vivo</h2></div>
+      <div class="section-head"><h2>Jogos ao vivo</h2><button class="see-all" data-goto="mapa">mapa do clube</button></div>
       <p class="section-lead">Até 2 jogos simultâneos — um por campo. Veja emblema, placar e horário de cada partida.</p>
       <div class="pill-row" id="camposFieldFilter"></div>
       <div class="pill-row" id="camposDayFilter"></div>
       <div class="field-board" id="camposBoard"></div>
+    </div>
+  </div>
+
+  <!-- ================= MAPA DO CLUBE ================= -->
+  <div class="screen" id="screen-mapa">
+    <div class="section">
+      <div class="section-head"><h2>Mapa do clube</h2></div>
+      <p class="section-lead">Toque em um campo no mapa pra ver o cronograma e os jogos ao vivo dele.</p>
+      <div class="map-wrap">
+        <img class="map-img" src="assets/map-club.jpg" alt="Mapa aéreo do SPAC com os campos Main Ground e Lions Field">
+        <button class="map-hotspot" data-campo="Grand Stand" aria-label="Main Ground" style="clip-path:polygon(39.6% 29.3%, 56.5% 34.7%, 50.8% 64.5%, 33.9% 59.1%);"></button>
+        <button class="map-hotspot" data-campo="Campo 2" aria-label="Lions Field" style="clip-path:polygon(56.5% 34.7%, 73.7% 40.0%, 67.7% 70.3%, 50.8% 64.5%);"></button>
+      </div>
     </div>
   </div>
 
@@ -212,6 +227,7 @@
     <div class="sheet-head"><h3>Mais opções</h3><button class="sheet-close" id="moreClose">&times;</button></div>
     <button class="sheet-item" data-goto="regulamento"><svg class="ico"><use href="#i-list"/></svg>Regulamento</button>
     <button class="sheet-item" data-goto="campos"><svg class="ico"><use href="#i-board"/></svg>Jogos ao vivo</button>
+    <button class="sheet-item" data-goto="mapa"><svg class="ico"><use href="#i-pin"/></svg>Mapa do clube</button>
     <button class="sheet-item" data-goto="artilharia"><svg class="ico"><use href="#i-target"/></svg>Artilharia</button>
     <button class="sheet-item" data-goto="times"><svg class="ico"><use href="#i-shirt"/></svg>Times</button>
     <button class="sheet-item" data-goto="sumula"><svg class="ico"><use href="#i-clipboard"/></svg>Enviar súmula</button>

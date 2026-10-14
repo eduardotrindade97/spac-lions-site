@@ -82,7 +82,7 @@ function computeFieldDelays(){
 }
 
 // ---------- navigation ----------
-const MORE_TABS = ['regulamento','artilharia','times','sumula','avisos','campos'];
+const MORE_TABS = ['regulamento','artilharia','times','sumula','avisos','campos','mapa'];
 function goToTab(tab){
   document.querySelectorAll('.screen').forEach(s=> s.classList.toggle('active', s.id==='screen-'+tab));
   document.querySelectorAll('.bn-btn[data-tab]').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
@@ -99,6 +99,14 @@ document.querySelectorAll('[data-goto]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     goToTab(btn.dataset.goto);
     document.getElementById('moreSheet').classList.remove('open');
+  });
+});
+// ---------- mapa do clube: toca num campo e vai direto pros jogos ao vivo dele ----------
+document.querySelectorAll('.map-hotspot').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    filters.camposField = btn.dataset.campo;
+    renderAll();
+    goToTab('campos');
   });
 });
 
