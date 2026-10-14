@@ -33,7 +33,7 @@ html,body{margin:0;padding:0;}
 body{
   background:
     radial-gradient(1100px 500px at 50% -10%, rgba(134,184,221,0.1), transparent 60%),
-    linear-gradient(180deg, rgba(6,15,28,0.88) 0%, rgba(6,15,28,0.94) 45%, var(--ink) 100%),
+    linear-gradient(180deg, rgba(6,15,28,0.5) 0%, rgba(6,15,28,0.58) 45%, rgba(6,15,28,0.7) 100%),
     url('../assets/bg-field.jpg');
   background-size:auto, auto, cover;
   background-position:center, center, center 18%;
@@ -48,7 +48,7 @@ body{
 body.admin-body{
   background:
     radial-gradient(1100px 500px at 50% -10%, rgba(134,184,221,0.1), transparent 60%),
-    linear-gradient(180deg, rgba(6,15,28,0.88) 0%, rgba(6,15,28,0.94) 45%, var(--ink) 100%),
+    linear-gradient(180deg, rgba(6,15,28,0.5) 0%, rgba(6,15,28,0.58) 45%, rgba(6,15,28,0.7) 100%),
     url('../assets/bg-ball.jpg');
   background-size:auto, auto, cover;
   background-position:center, center, center 30%;
@@ -60,7 +60,7 @@ a{color:var(--blue);}
 /* Visão por campo: fundo próprio (trave contra o pôr do sol) */
 #screen-campos{
   background:
-    linear-gradient(180deg, rgba(6,15,28,0.92) 0%, rgba(6,15,28,0.85) 40%, rgba(6,15,28,0.96) 100%),
+    linear-gradient(180deg, rgba(6,15,28,0.62) 0%, rgba(6,15,28,0.52) 40%, rgba(6,15,28,0.68) 100%),
     url('../assets/bg-goalpost.jpg');
   background-size:auto, cover;
   background-position:center, center 25%;
