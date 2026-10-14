@@ -114,6 +114,151 @@ document.querySelectorAll('.map-hotspot').forEach(btn=>{
   });
 });
 
+// ---------- mapa do clube: zoom e pan (arrastar, beliscar, roda do mouse, duplo toque) ----------
+(function(){
+  const stage = document.getElementById('mapStage');
+  const canvas = document.getElementById('mapCanvas');
+  const img = document.getElementById('mapImg');
+  if(!stage || !canvas || !img) return;
+
+  let scale = 1, fitScale = 1, minScale = 1, maxScale = 5;
+  let tx = 0, ty = 0, naturalW = 0, naturalH = 0;
+
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  function constrain(){
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    const cw = naturalW*scale, ch = naturalH*scale;
+    tx = cw <= sw ? (sw-cw)/2 : clamp(tx, sw-cw, 0);
+    ty = ch <= sh ? (sh-ch)/2 : clamp(ty, sh-ch, 0);
+  }
+  function apply(){
+    canvas.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+  }
+  function setScale(next, originX, originY){
+    next = clamp(next, minScale, maxScale);
+    const factor = next/scale;
+    tx = originX - (originX-tx)*factor;
+    ty = originY - (originY-ty)*factor;
+    scale = next;
+    constrain();
+    apply();
+  }
+  function reset(){
+    fitScale = stage.clientWidth / naturalW;
+    minScale = fitScale;
+    scale = fitScale;
+    tx = (stage.clientWidth - naturalW*scale)/2;
+    ty = (stage.clientHeight - naturalH*scale)/2;
+    constrain();
+    apply();
+  }
+  function init(){
+    naturalW = img.naturalWidth; naturalH = img.naturalHeight;
+    if(!naturalW || !naturalH) return;
+    canvas.style.width = naturalW+'px';
+    canvas.style.height = naturalH+'px';
+    reset();
+  }
+  if(img.complete && img.naturalWidth) init(); else img.addEventListener('load', init);
+  // a tela do mapa começa escondida (display:none) até o usuário navegar até ela,
+  // então o cálculo de fitScale acima roda com o palco com largura zero. Um
+  // ResizeObserver no palco recalcula assim que ele ganha tamanho real (ao ficar
+  // visível) e também em qualquer resize/mudança de orientação depois disso.
+  function trySize(){ if(naturalW && stage.clientWidth>0) reset(); }
+  if('ResizeObserver' in window){
+    new ResizeObserver(trySize).observe(stage);
+  } else {
+    window.addEventListener('resize', trySize);
+  }
+
+  // arrastar (mouse e toque) e beliscar, via Pointer Events.
+  // só vira "arrastar de verdade" (e captura o pointer) depois de um movimento mínimo,
+  // assim um toque simples num campo continua dando o click normal no hotspot.
+  const DRAG_THRESHOLD = 6;
+  const pointers = new Map();
+  let dragging = false, captured = false, downX = 0, downY = 0, lastX = 0, lastY = 0, downOnButton = false;
+  let pinchStartDist = 0, pinchStartScale = 1, pinchMid = {x:0,y:0};
+  let lastTapAt = 0;
+
+  stage.addEventListener('pointerdown', e=>{
+    if(!naturalW) return;
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size===1){
+      downX = lastX = e.clientX; downY = lastY = e.clientY;
+      dragging = false; captured = false;
+      // guarda se o toque começou num botão (zoom +/-/centralizar, ou um hotspot de
+      // campo): se o usuário só tocar e soltar, deixamos o click nativo do botão
+      // acontecer normalmente (sem entrar na lógica de duplo-toque pra zoom, senão um
+      // toque rápido no botão de centralizar contaria como "tap" e disparava zoom à
+      // toa). Mas se o toque virar um arrasto de verdade (passar do limiar abaixo),
+      // ele vira pan mesmo tendo começado em cima de um hotspot — graças ao
+      // setPointerCapture no pointermove, que redireciona o alvo do pointerup e por
+      // tabela cancela o click nativo do botão, então arrastar a partir de um campo
+      // nunca é confundido com um toque nele.
+      downOnButton = !!e.target.closest('button');
+    } else if(pointers.size===2){
+      dragging = false;
+      if(!captured){ stage.setPointerCapture(e.pointerId); captured = true; stage.classList.add('is-dragging'); }
+      const pts = [...pointers.values()];
+      pinchStartDist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      pinchStartScale = scale;
+      const rect = stage.getBoundingClientRect();
+      pinchMid = { x:(pts[0].x+pts[1].x)/2 - rect.left, y:(pts[0].y+pts[1].y)/2 - rect.top };
+    }
+  });
+  stage.addEventListener('pointermove', e=>{
+    if(!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size===2 && pinchStartDist>0){
+      const pts = [...pointers.values()];
+      const dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      setScale(pinchStartScale*(dist/pinchStartDist), pinchMid.x, pinchMid.y);
+    } else if(pointers.size===1){
+      if(!dragging){
+        if(Math.hypot(e.clientX-downX, e.clientY-downY) < DRAG_THRESHOLD) return;
+        dragging = true;
+        if(!captured){ stage.setPointerCapture(e.pointerId); captured = true; }
+        stage.classList.add('is-dragging');
+      }
+      const dx = e.clientX-lastX, dy = e.clientY-lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      tx += dx; ty += dy;
+      constrain(); apply();
+    }
+  });
+  function endPointer(e){
+    pointers.delete(e.pointerId);
+    if(pointers.size<2) pinchStartDist = 0;
+    if(pointers.size===0){ dragging = false; captured = false; stage.classList.remove('is-dragging'); }
+  }
+  stage.addEventListener('pointerup', e=>{
+    if(!dragging && !pinchStartDist && pointers.size===1 && !downOnButton){
+      const now = Date.now();
+      if(now-lastTapAt < 300){
+        const rect = stage.getBoundingClientRect();
+        setScale(scale>fitScale*1.3 ? fitScale : fitScale*2.4, e.clientX-rect.left, e.clientY-rect.top);
+      }
+      lastTapAt = now;
+    }
+    endPointer(e);
+  });
+  stage.addEventListener('pointercancel', endPointer);
+
+  // roda do mouse (desktop)
+  stage.addEventListener('wheel', e=>{
+    if(!naturalW) return;
+    e.preventDefault();
+    const rect = stage.getBoundingClientRect();
+    const ox = e.clientX-rect.left, oy = e.clientY-rect.top;
+    setScale(scale + (e.deltaY>0?-0.18:0.18)*scale, ox, oy);
+  }, { passive:false });
+
+  document.getElementById('mapZoomIn')?.addEventListener('click', ()=> setScale(scale*1.4, stage.clientWidth/2, stage.clientHeight/2));
+  document.getElementById('mapZoomOut')?.addEventListener('click', ()=> setScale(scale/1.4, stage.clientWidth/2, stage.clientHeight/2));
+  document.getElementById('mapZoomReset')?.addEventListener('click', reset);
+})();
+
 // ---------- countdown ----------
 function renderCountdown(){
   const now = new Date();

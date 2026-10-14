@@ -244,9 +244,18 @@ table.std tr:nth-child(2) td:last-child{border-radius:0 8px 8px 0;}
 .mural-cat{font-size:10px;color:var(--dim);margin-top:4px;}
 .mural-upload{font-size:10px;color:var(--gold);margin-top:9px;cursor:pointer;background:none;border:none;font-weight:700;padding:2px;}
 
-/* ---------- MAPA DO CLUBE ---------- */
-.map-wrap{position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-md);border:1px solid var(--line);line-height:0;}
-.map-img{width:100%;height:auto;display:block;}
+/* ---------- MAPA DO CLUBE (palco com zoom/pan) ---------- */
+.map-stage{
+  position:relative;width:100%;
+  height:min(640px, 68vh);height:min(640px, 68dvh);min-height:360px;
+  overflow:hidden;background:var(--ink);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  touch-action:none;cursor:grab;
+  -webkit-user-select:none;user-select:none;
+}
+.map-stage.is-dragging{cursor:grabbing;}
+.map-canvas{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;}
+.map-img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none;}
 .map-hotspot{
   position:absolute;inset:0;width:100%;height:100%;
   background:transparent;border:none;padding:0;margin:0;cursor:pointer;
@@ -255,6 +264,18 @@ table.std tr:nth-child(2) td:last-child{border-radius:0 8px 8px 0;}
 }
 .map-hotspot:hover,.map-hotspot:active{background:rgba(217,178,104,0.28);}
 .map-hotspot:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
+.map-zoom-ctrls{
+  position:absolute;right:14px;bottom:14px;z-index:2;
+  display:flex;flex-direction:column;gap:7px;
+}
+.map-zoom-ctrls button{
+  width:38px;height:38px;border-radius:11px;
+  background:var(--navy-2);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);
+  border:1px solid var(--line);color:var(--white);font-size:18px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);
+}
+.map-zoom-ctrls button svg.ico{width:16px;height:16px;}
+.map-zoom-ctrls button:active{border-color:var(--gold-soft);}
 
 /* ---------- CAMPOS (field board) ---------- */
 .field-board{display:flex;flex-direction:column;gap:10px;}
