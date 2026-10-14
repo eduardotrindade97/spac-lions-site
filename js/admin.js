@@ -205,6 +205,23 @@ document.getElementById('btnAddAnn').onclick = async ()=>{
 };
 
 // ---------- PLACAR AO VIVO ----------
+const SCORE_TYPES = [
+  { id:'try', label:'Try', pontos:5 },
+  { id:'conversao', label:'Conversão', pontos:2 },
+  { id:'penal_try', label:'Penal Try', pontos:5 },
+  { id:'drop', label:'Drop Kick', pontos:3 }
+];
+function scoreTypeInfo(tipo){
+  return SCORE_TYPES.find(t=>t.id===tipo) || { id:tipo, label:tipo==='penal' ? 'Penal' : tipo, pontos:0 };
+}
+// aceita "Nome Completo — 12", "Nome Completo - 12", "Nome Completo #12" etc.
+function parseAtleta(raw){
+  const s = (raw||'').trim();
+  const m = s.match(/^(.*?)\s*(?:[—–-]|#)\s*(\d{1,3})\s*$/);
+  if(m) return { name: m[1].trim(), number: m[2] };
+  return { name: s, number: '' };
+}
+let pendingScoreType = { A:null, B:null };
 function getApprovedRoster(teamId, matchData){
   const subs = SUMULAS.filter(s=> s.teamId===teamId && s.status==='aprovada');
   if(subs.length===0) return null;
@@ -255,6 +272,7 @@ function fillPlacarMatchSelect(){
 }
 document.getElementById('fPlacarMatch').addEventListener('change', e=>{
   selectedPlacarMatchId = e.target.value;
+  pendingScoreType = { A:null, B:null };
   renderAdminPlacar();
 });
 function renderAdminPlacar(){
@@ -303,15 +321,28 @@ function renderAdminPlacar(){
       return '<p class="no-roster">Nenhuma súmula enviada ainda pra esse time. Peça pro time enviar pelo site, ou lance manualmente em Artilheiros.</p>';
     }
     if(roster.length===0) return '<p class="no-roster">Súmula aprovada sem atletas listados.</p>';
-    return roster.map(atleta=>`
-      <div class="player-row">
-        <span class="pname">${escapeHtml(atleta)}</span>
-        <div class="pbtns">
-          <button data-score="${teamSide}|${encodeURIComponent(atleta)}|try|5">+5 try</button>
-          <button data-score="${teamSide}|${encodeURIComponent(atleta)}|conversao|2">+2 conv</button>
-          <button data-score="${teamSide}|${encodeURIComponent(atleta)}|penal|3">+3 penal</button>
-        </div>
-      </div>`).join('');
+    const activeType = pendingScoreType[teamSide];
+    if(!activeType){
+      // passo 1: escolher o tipo de pontuação
+      return `<div class="score-types">
+        ${SCORE_TYPES.map(t=>`<button class="score-type-btn" data-pick-type="${teamSide}|${t.id}">${escapeHtml(t.label)}<span>+${t.pontos}</span></button>`).join('')}
+      </div>`;
+    }
+    const info = scoreTypeInfo(activeType);
+    // passo 2: escolher o jogador que pontuou
+    return `<div class="score-players">
+      <div class="score-players-head">
+        <span>${escapeHtml(info.label)} · +${info.pontos}</span>
+        <button class="btn-ghost" data-back-type="${teamSide}">voltar</button>
+      </div>
+      ${roster.map(atleta=>{
+        const { name, number } = parseAtleta(atleta);
+        return `<button class="player-row player-row-btn" data-score="${teamSide}|${encodeURIComponent(atleta)}|${info.id}|${info.pontos}">
+          ${number ? `<span class="pnum">${escapeHtml(number)}</span>` : ''}
+          <span class="pname">${escapeHtml(name)}</span>
+        </button>`;
+      }).join('')}
+    </div>`;
   }
   rosterA.innerHTML = rosterHtml(m.teamAId,'A');
   rosterB.innerHTML = rosterHtml(m.teamBId,'B');
@@ -319,10 +350,26 @@ function renderAdminPlacar(){
     el.querySelectorAll('[data-approve-roster]').forEach(b=>{
       b.onclick = ()=> updateDoc(doc(db,'sumulas',b.dataset.approveRoster), {status:'aprovada'});
     });
-    el.querySelectorAll('[data-score]').forEach(b=>{
+    el.querySelectorAll('[data-pick-type]').forEach(b=>{
       b.onclick = ()=>{
+        const [side, tipo] = b.dataset.pickType.split('|');
+        pendingScoreType[side] = tipo;
+        renderAdminPlacar();
+      };
+    });
+    el.querySelectorAll('[data-back-type]').forEach(b=>{
+      b.onclick = ()=>{
+        pendingScoreType[b.dataset.backType] = null;
+        renderAdminPlacar();
+      };
+    });
+    el.querySelectorAll('[data-score]').forEach(b=>{
+      b.onclick = async ()=>{
         const [side, encName, tipo, pts] = b.dataset.score.split('|');
-        scorePoint(m.id, side, decodeURIComponent(encName), tipo, parseInt(pts));
+        const { name } = parseAtleta(decodeURIComponent(encName));
+        pendingScoreType[side] = null;
+        await scorePoint(m.id, side, name, tipo, parseInt(pts));
+        renderAdminPlacar();
       };
     });
   });
@@ -331,7 +378,7 @@ function renderAdminPlacar(){
   else {
     eventsEl.innerHTML = evs.map(e=>{
       const side = e.teamSide==='A' ? nameA : nameB;
-      const tipoLabel = e.tipo==='try' ? 'Try' : (e.tipo==='conversao' ? 'Conversão' : 'Penal');
+      const tipoLabel = scoreTypeInfo(e.tipo).label;
       return `<div class="event-item"><span>+${e.pontos} · ${escapeHtml(e.playerName)} (${escapeHtml(side)}) — ${tipoLabel}</span><button class="icon-btn danger" data-undo="${e.id}">desfazer</button></div>`;
     }).join('');
     eventsEl.querySelectorAll('[data-undo]').forEach(b=> b.onclick = ()=> undoPlacarEvent(b.dataset.undo));
