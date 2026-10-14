@@ -67,6 +67,10 @@ function fmtHM(ts){
 function faseLabel(f){
   return {grupo:'Fase de grupos', quartas:'Quartas de final', semi:'Semifinal', final:'Final'}[f] || f;
 }
+// Nome de exibição do campo (o valor salvo no banco continua "Grand Stand" pra não quebrar jogos já cadastrados).
+function campoLabel(campo){
+  return campo==='Grand Stand' ? 'Grandstand' : (campo||'');
+}
 function matchTimestamp(dataStr, horarioStr){
   if(!dataStr || !horarioStr) return null;
   const m = /^(\d{1,2}):(\d{2})$/.exec(String(horarioStr).trim());
@@ -77,7 +81,7 @@ function matchTimestamp(dataStr, horarioStr){
 }
 function matchLabel(m){
   const tag = m.status==='ao_vivo' ? ' · AO VIVO' : (m.status==='encerrado' ? ' · encerrado' : '');
-  return `${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)} — ${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}${m.campo?(' · '+m.campo):''}${tag}`;
+  return `${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)} — ${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}${m.campo?(' · '+campoLabel(m.campo)):''}${tag}`;
 }
 
 function bootData(){
@@ -295,7 +299,7 @@ function renderAdminPlacar(){
   let startHtml = '';
   if(m.status==='agendado'){
     startHtml = `<div class="start-box">
-      <div class="start-info">Previsto para ${m.horario||'--:--'}${m.campo?(' · '+m.campo):''}. Dê START quando o jogo realmente começar — assim o atraso é calculado pros próximos jogos do campo.</div>
+      <div class="start-info">Previsto para ${m.horario||'--:--'}${m.campo?(' · '+campoLabel(m.campo)):''}. Dê START quando o jogo realmente começar — assim o atraso é calculado pros próximos jogos do campo.</div>
       <button class="btn" id="btnStartMatch">Iniciar jogo (START)</button>
     </div>`;
   } else if(m.status==='ao_vivo' && m.startedAt){
@@ -458,7 +462,7 @@ function renderAdminLists(){
       </select>
       <input type="text" placeholder="HH:MM" style="width:46px;" value="${escapeHtml(m.horario||'')}" data-horario="${m.id}">
       <select data-campo="${m.id}">
-        <option value="Grand Stand" ${m.campo==='Grand Stand'?'selected':''}>Grand Stand</option>
+        <option value="Grand Stand" ${m.campo==='Grand Stand'?'selected':''}>Grandstand</option>
         <option value="Campo 2" ${m.campo==='Campo 2'?'selected':''}>Campo 2</option>
       </select>
       <select data-status="${m.id}">

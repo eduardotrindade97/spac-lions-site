@@ -22,6 +22,10 @@ function teamName(id, fallback){
 function escapeHtml(s){
   return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+// Nome de exibição do campo (o valor salvo no banco continua "Grand Stand" pra não quebrar jogos já cadastrados).
+function campoLabel(campo){
+  return campo==='Grand Stand' ? 'Grandstand' : (campo||'');
+}
 function fmtTime(ts){
   if(!ts) return '';
   const d = new Date(ts);
@@ -148,7 +152,7 @@ function renderCronograma(){
       <div class="mtime">${m.horario||'--:--'}<span class="d">${m.data==='2026-12-13'?'Dom':'Sáb'}</span></div>
       <div class="mmid">
         <div class="mteams"><span class="status-dot ${dot}"></span>${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)}</div>
-        <div class="mmeta">${m.categoria} · ${faseLabel(m.fase)}${m.campo?(' · '+m.campo):''}${delayTag}</div>
+        <div class="mmeta">${m.categoria} · ${faseLabel(m.fase)}${m.campo?(' · '+campoLabel(m.campo)):''}${delayTag}</div>
       </div>
       <div class="mscore">${scoreTxt}</div>
     </div>`;
@@ -249,7 +253,7 @@ function renderHomeLive(){
   strip.innerHTML = liveOnes.map(m=>{
     const tA = TEAMS.find(t=>t.id===m.teamAId), tB = TEAMS.find(t=>t.id===m.teamBId);
     return `<div class="live-chip">
-      <div class="lc-top"><span class="now-live-dot"></span><span class="lc-field">${escapeHtml(m.campo||'Ao vivo')}</span></div>
+      <div class="lc-top"><span class="now-live-dot"></span><span class="lc-field">${escapeHtml(campoLabel(m.campo)||'Ao vivo')}</span></div>
       <div class="lc-vs">
         <div class="lc-team"><div class="lc-crest">${crestHtml(tA)}</div><span>${teamName(m.teamAId,m.teamAName)}</span></div>
         <div class="lc-score">${m.scoreA??0}<span>–</span>${m.scoreB??0}</div>
@@ -262,6 +266,7 @@ function renderHomeLive(){
 // ---------- CAMPOS (visão por campo, estilo telão) ----------
 function renderCampos(){
   buildPillRow(document.getElementById('camposFieldFilter'), FIELDS, 'camposField', null);
+  document.querySelectorAll('#camposFieldFilter .pill').forEach(chip=>{ chip.textContent = campoLabel(chip.textContent); });
   buildPillRow(document.getElementById('camposDayFilter'), ['2026-12-12','2026-12-13'], 'camposDay', 'Todos os dias');
   document.querySelectorAll('#camposDayFilter .pill').forEach((chip,i)=>{
     if(i>0) chip.textContent = i===1 ? 'Sáb 12/12' : 'Dom 13/12';
