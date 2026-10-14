@@ -11,7 +11,7 @@
 <body>
 
 <div class="admin-login" id="loginBox">
-  <div class="brand-mark"><span>SL</span></div>
+  <img class="site-logo" src="../assets/logo.png" alt="SPAC Lions SVNS 2026" style="margin-bottom:22px;">
   <h1>Painel do organizador</h1>
   <p>Acesso restrito. Entre com o e-mail e senha que a organização cadastrou no Firebase.</p>
   <div class="field"><label>E-mail</label><input type="email" id="loginEmail" autocomplete="username"></div>
@@ -23,7 +23,7 @@
 <div class="admin-shell" id="adminShell" style="display:none;">
   <div class="admin-top">
     <div class="brand">
-      <div class="brand-mark"><span>SL</span></div>
+      <img class="site-logo site-logo-sm" src="../assets/logo.png" alt="SPAC Lions SVNS 2026">
       <h1>Painel do organizador</h1>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
@@ -83,7 +83,9 @@
       </div>
       <div class="field"><label>Horário</label><input id="fMatchHorario" placeholder="Ex: 09:20"></div>
     </div>
-    <div class="field"><label>Campo</label><input id="fMatchCampo" placeholder="Ex: Campo 1"></div>
+    <div class="field"><label>Campo</label>
+      <select id="fMatchCampo"><option value="Grand Stand">Grand Stand</option><option value="Campo 2">Campo 2</option></select>
+    </div>
     <button class="btn" id="btnAddMatch">Adicionar jogo</button>
     <div style="margin-top:16px;" id="adminMatchList"></div>
   </div>

@@ -62,7 +62,7 @@ function fmtTime(ts){
 }
 function matchLabel(m){
   const tag = m.status==='ao_vivo' ? ' · AO VIVO' : (m.status==='encerrado' ? ' · encerrado' : '');
-  return `${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)} — ${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}${tag}`;
+  return `${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)} — ${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}${m.campo?(' · '+m.campo):''}${tag}`;
 }
 
 function bootData(){
@@ -293,7 +293,7 @@ function renderAdminLists(){
 
   const mEl = document.getElementById('adminMatchList');
   mEl.innerHTML = MATCHES.slice().sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.horario||'').localeCompare(b.horario||'')).map(m=>
-    `<div class="admin-list-item"><div class="il"><b>${teamName(m.teamAId,m.teamAName)} vs ${teamName(m.teamBId,m.teamBName)}</b><span>${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}</span></div>
+    `<div class="admin-list-item"><div class="il"><b>${teamName(m.teamAId,m.teamAName)} vs ${teamName(m.teamBId,m.teamBName)}</b><span>${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}${m.campo?(' · '+m.campo):''}</span></div>
     <div class="controls">
       <select data-status="${m.id}">
         <option value="agendado" ${m.status==='agendado'?'selected':''}>Agendado</option>

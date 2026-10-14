@@ -4,9 +4,16 @@ import {
 import { db, CATS, EVENT_DATE } from "./firebase-init.js";
 
 // ---------- state ----------
+const FIELDS = ['Grand Stand', 'Campo 2'];
 let TEAMS = [], MATCHES = [], ANNOUNCEMENTS = [], SCORERS = [], SUMULAS = [];
-let filters = { cronoDay:'all', cronoCat:'all', gruposCat:CATS[0], placaresCat:'all', muralCat:'all', artCat:'all' };
+let filters = { cronoDay:'all', cronoCat:'all', gruposCat:CATS[0], placaresCat:'all', muralCat:'all', artCat:'all', camposField:FIELDS[0], camposDay:'all' };
 let crestTargetTeamId = null;
+
+function crestHtml(team){
+  if(!team) return '';
+  if(team.logoUrl) return `<img src="${team.logoUrl}">`;
+  return escapeHtml((team.name||'').slice(0,2).toUpperCase());
+}
 
 function teamName(id, fallback){
   const t = TEAMS.find(t=>t.id===id);
@@ -22,7 +29,7 @@ function fmtTime(ts){
 }
 
 // ---------- navigation ----------
-const MORE_TABS = ['regulamento','artilharia','times','sumula','avisos'];
+const MORE_TABS = ['regulamento','artilharia','times','sumula','avisos','campos'];
 function goToTab(tab){
   document.querySelectorAll('.screen').forEach(s=> s.classList.toggle('active', s.id==='screen-'+tab));
   document.querySelectorAll('.bn-btn[data-tab]').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
@@ -178,15 +185,57 @@ function renderPlacares(){
     </div>`;
   }).join('');
 
-  // live strip on home
+  // live strip on home — no máximo 2 jogos simultâneos (1 por campo), mostra os dois
   const liveOnes = MATCHES.filter(m=>m.status==='ao_vivo');
   const strip = document.getElementById('liveStrip');
-  if(liveOnes.length===0){ strip.style.display='none'; }
+  if(liveOnes.length===0){ strip.style.display='none'; strip.innerHTML=''; }
   else {
     strip.style.display='flex';
-    const m = liveOnes[0];
-    strip.innerHTML = `<span class="now-live-dot"></span> AO VIVO: ${teamName(m.teamAId,m.teamAName)} ${m.scoreA??0} – ${m.scoreB??0} ${teamName(m.teamBId,m.teamBName)}${liveOnes.length>1?` (+${liveOnes.length-1} jogo${liveOnes.length>2?'s':''})`:''}`;
+    strip.innerHTML = liveOnes.map(m=>`<div class="live-chip"><span class="now-live-dot"></span><span class="lc-field">${escapeHtml(m.campo||'Ao vivo')}</span><span class="lc-match">${teamName(m.teamAId,m.teamAName)} ${m.scoreA??0} – ${m.scoreB??0} ${teamName(m.teamBId,m.teamBName)}</span></div>`).join('');
   }
+}
+
+// ---------- CAMPOS (visão por campo, estilo telão) ----------
+function renderCampos(){
+  buildPillRow(document.getElementById('camposFieldFilter'), FIELDS, 'camposField', null);
+  buildPillRow(document.getElementById('camposDayFilter'), ['2026-12-12','2026-12-13'], 'camposDay', 'Todos os dias');
+  document.querySelectorAll('#camposDayFilter .pill').forEach((chip,i)=>{
+    if(i>0) chip.textContent = i===1 ? 'Sáb 12/12' : 'Dom 13/12';
+  });
+
+  let list = MATCHES.filter(m=>(m.campo||'')===filters.camposField);
+  if(filters.camposDay!=='all') list = list.filter(m=>m.data===filters.camposDay);
+  list.sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.horario||'').localeCompare(b.horario||''));
+
+  const board = document.getElementById('camposBoard');
+  if(list.length===0){ board.innerHTML = '<p class="empty">Nenhum jogo cadastrado nesse campo ainda.</p>'; return; }
+
+  let lastDay = null;
+  const parts = [];
+  list.forEach(m=>{
+    if(m.data !== lastDay){
+      lastDay = m.data;
+      parts.push(`<div class="field-day-label">${m.data==='2026-12-13'?'Domingo 13/12':'Sábado 12/12'}</div>`);
+    }
+    const tA = TEAMS.find(t=>t.id===m.teamAId), tB = TEAMS.find(t=>t.id===m.teamBId);
+    const isFuture = m.status==='agendado';
+    const scoreHtml = isFuture
+      ? `<div class="fmc-score is-future">0<span>x</span>0</div>`
+      : `<div class="fmc-score">${m.scoreA??0}<span>–</span>${m.scoreB??0}</div>`;
+    const statusTxt = m.status==='ao_vivo' ? 'AO VIVO' : (m.status==='encerrado' ? 'Encerrado' : 'Agendado');
+    const dot = m.status==='ao_vivo' ? 'live' : (m.status==='encerrado' ? 'done' : 'sched');
+    parts.push(`
+      <div class="field-match-card${m.status==='ao_vivo'?' is-live':''}">
+        <div class="fmc-top"><span class="fmc-time">${m.horario||'--:--'}</span><span class="badge ${m.status==='ao_vivo'?'badge-live':(m.status==='encerrado'?'badge-good':'badge-warn')}">${statusTxt}</span></div>
+        <div class="fmc-vs">
+          <div class="fmc-team"><div class="fmc-crest">${crestHtml(tA)}</div><div class="fmc-tname">${teamName(m.teamAId,m.teamAName)}</div></div>
+          ${scoreHtml}
+          <div class="fmc-team"><div class="fmc-crest">${crestHtml(tB)}</div><div class="fmc-tname">${teamName(m.teamBId,m.teamBName)}</div></div>
+        </div>
+        <div class="fmc-meta"><span class="status-dot ${dot}"></span>${m.categoria} · ${faseLabel(m.fase)}</div>
+      </div>`);
+  });
+  board.innerHTML = parts.join('');
 }
 
 // ---------- ARTILHARIA ----------
@@ -216,7 +265,7 @@ function renderMural(){
   if(list.length===0){ el.innerHTML = '<p class="empty">Nenhum time cadastrado ainda.</p>'; return; }
   el.innerHTML = list.map(t=>`
     <div class="mural-card">
-      <div class="mural-crest">${t.logoUrl ? `<img src="${t.logoUrl}">` : t.name.slice(0,2).toUpperCase()}</div>
+      <div class="mural-crest">${crestHtml(t)}</div>
       <div class="mural-name">${escapeHtml(t.name)}</div>
       <div class="mural-cat">${t.categoria}</div>
       <button class="mural-upload" data-upload-crest="${t.id}">${t.logoUrl ? 'trocar escudo' : 'enviar escudo'}</button>
@@ -341,6 +390,7 @@ function renderAll(){
   renderCronograma();
   renderGrupos();
   renderPlacares();
+  renderCampos();
   renderArtilharia();
   renderMural();
   renderAvisos();
