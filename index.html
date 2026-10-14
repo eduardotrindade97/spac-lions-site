@@ -11,11 +11,25 @@
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+
+<svg class="icon-defs" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 9.5h16"/><path d="M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0V4Z"/><path d="M6 5H4a3 3 0 0 0 3 3.6"/><path d="M18 5h2a3 3 0 0 1-3 3.6"/><path d="M12 13v3.5"/><path d="M9 20h6"/><path d="M9.5 20 10 16.5h4l.5 3.5"/></symbol>
+  <symbol id="i-live" viewBox="0 0 24 24"><circle cx="12" cy="18" r="1.4"/><path d="M8.5 13a5 5 0 0 1 7 0"/><path d="M5.5 10a9 9 0 0 1 13 0"/></symbol>
+  <symbol id="i-shirt" viewBox="0 0 24 24"><path d="M8 4 4 7l2.2 3.2L8 9v11h8V9l1.8 1.2L20 7l-4-3-2 2h-4L8 4Z"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4.5"/></symbol>
+  <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M3 10v4h3l5 4V6l-5 4H3Z"/><path d="M14 9a4 4 0 0 1 0 6"/><path d="M17 7a7.5 7.5 0 0 1 0 10"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
+</svg>
+
 <div class="app" id="app">
 
   <div class="topbar">
     <div class="brand">
-      <div class="brand-mark">🦁</div>
+      <div class="brand-mark"><span>SL</span></div>
       <div class="brand-text"><b>SPAC Lions SVNS</b><span>32ª edição · 2026</span></div>
     </div>
   </div>
@@ -33,12 +47,12 @@
     <div class="section">
       <div class="section-head"><h2>Acesso rápido</h2></div>
       <div class="quick-grid">
-        <button class="quick-btn" data-goto="cronograma"><span class="q-ico">🗓️</span><span class="q-label">Cronograma</span></button>
-        <button class="quick-btn" data-goto="grupos"><span class="q-ico">🏆</span><span class="q-label">Grupos</span></button>
-        <button class="quick-btn" data-goto="placares"><span class="q-ico">🔴</span><span class="q-label">Placares</span></button>
-        <button class="quick-btn" data-goto="times"><span class="q-ico">👕</span><span class="q-label">Times</span></button>
-        <button class="quick-btn" data-goto="artilharia"><span class="q-ico">🎯</span><span class="q-label">Artilharia</span></button>
-        <button class="quick-btn" data-goto="sumula"><span class="q-ico">📝</span><span class="q-label">Enviar súmula</span></button>
+        <button class="quick-btn" data-goto="cronograma"><span class="q-ico"><svg class="ico"><use href="#i-calendar"/></svg></span><span class="q-label">Cronograma</span></button>
+        <button class="quick-btn" data-goto="grupos"><span class="q-ico"><svg class="ico"><use href="#i-trophy"/></svg></span><span class="q-label">Grupos</span></button>
+        <button class="quick-btn" data-goto="placares"><span class="q-ico"><svg class="ico"><use href="#i-live"/></svg></span><span class="q-label">Placares</span></button>
+        <button class="quick-btn" data-goto="times"><span class="q-ico"><svg class="ico"><use href="#i-shirt"/></svg></span><span class="q-label">Times</span></button>
+        <button class="quick-btn" data-goto="artilharia"><span class="q-ico"><svg class="ico"><use href="#i-target"/></svg></span><span class="q-label">Artilharia</span></button>
+        <button class="quick-btn" data-goto="sumula"><span class="q-ico"><svg class="ico"><use href="#i-clipboard"/></svg></span><span class="q-label">Enviar súmula</span></button>
       </div>
     </div>
     <div class="section">
@@ -180,21 +194,21 @@
 </div>
 
 <nav class="bottom-nav" id="bottomNav">
-  <button class="bn-btn active" data-tab="inicio"><span class="bn-ico">🏠</span><span class="bn-label">Início</span></button>
-  <button class="bn-btn" data-tab="cronograma"><span class="bn-ico">🗓️</span><span class="bn-label">Jogos</span></button>
-  <button class="bn-btn" data-tab="grupos"><span class="bn-ico">🏆</span><span class="bn-label">Grupos</span></button>
-  <button class="bn-btn" data-tab="placares"><span class="bn-ico">🔴</span><span class="bn-label">Placar</span></button>
-  <button class="bn-btn" id="moreNavBtn"><span class="bn-ico">⋯</span><span class="bn-label">Mais</span></button>
+  <button class="bn-btn active" data-tab="inicio"><svg class="ico"><use href="#i-home"/></svg><span class="bn-label">Início</span></button>
+  <button class="bn-btn" data-tab="cronograma"><svg class="ico"><use href="#i-calendar"/></svg><span class="bn-label">Jogos</span></button>
+  <button class="bn-btn" data-tab="grupos"><svg class="ico"><use href="#i-trophy"/></svg><span class="bn-label">Grupos</span></button>
+  <button class="bn-btn" data-tab="placares"><svg class="ico"><use href="#i-live"/></svg><span class="bn-label">Placar</span></button>
+  <button class="bn-btn" id="moreNavBtn"><svg class="ico"><use href="#i-more"/></svg><span class="bn-label">Mais</span></button>
 </nav>
 
 <div class="sheet" id="moreSheet">
   <div class="sheet-box">
     <div class="sheet-head"><h3>Mais opções</h3><button class="sheet-close" id="moreClose">&times;</button></div>
-    <button class="sheet-item" data-goto="regulamento"><span class="ico">📋</span>Regulamento</button>
-    <button class="sheet-item" data-goto="artilharia"><span class="ico">🎯</span>Artilharia</button>
-    <button class="sheet-item" data-goto="times"><span class="ico">👕</span>Times</button>
-    <button class="sheet-item" data-goto="sumula"><span class="ico">📝</span>Enviar súmula</button>
-    <button class="sheet-item" data-goto="avisos"><span class="ico">📣</span>Avisos</button>
+    <button class="sheet-item" data-goto="regulamento"><svg class="ico"><use href="#i-list"/></svg>Regulamento</button>
+    <button class="sheet-item" data-goto="artilharia"><svg class="ico"><use href="#i-target"/></svg>Artilharia</button>
+    <button class="sheet-item" data-goto="times"><svg class="ico"><use href="#i-shirt"/></svg>Times</button>
+    <button class="sheet-item" data-goto="sumula"><svg class="ico"><use href="#i-clipboard"/></svg>Enviar súmula</button>
+    <button class="sheet-item" data-goto="avisos"><svg class="ico"><use href="#i-megaphone"/></svg>Avisos</button>
   </div>
 </div>
 

@@ -61,7 +61,7 @@ function fmtTime(ts){
   return new Date(ts).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
 }
 function matchLabel(m){
-  const tag = m.status==='ao_vivo' ? ' 🔴' : (m.status==='encerrado' ? ' ✓' : '');
+  const tag = m.status==='ao_vivo' ? ' · AO VIVO' : (m.status==='encerrado' ? ' · encerrado' : '');
   return `${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)} — ${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}${tag}`;
 }
 

@@ -48,7 +48,7 @@ function renderCountdown(){
   const diff = EVENT_DATE - now;
   const row = document.getElementById('countdownRow');
   if(diff <= 0){
-    row.innerHTML = '<div class="now-pill"><b>🦁</b><span>É hoje!</span></div>';
+    row.innerHTML = '<div class="now-pill" style="flex:none;padding:12px 22px;"><b>É hoje!</b><span>Bora</span></div>';
     return;
   }
   const days = Math.floor(diff/86400000);
@@ -200,8 +200,10 @@ function renderArtilharia(){
   list.sort((a,b)=>(b.points||0)-(a.points||0));
   const el = document.getElementById('artList');
   if(list.length===0){ el.innerHTML = '<p class="empty">Nenhum ponto registrado ainda.</p>'; return; }
-  const medals = ['🥇','🥈','🥉'];
-  el.innerHTML = list.map((s,i)=>`<div class="match-row"><div class="mmid"><div class="mteams">${medals[i]||(i+1)+'.'} ${escapeHtml(s.name)}</div><div class="mmeta">${teamName(s.teamId)}</div></div><div class="mscore">${s.points||0}</div></div>`).join('');
+  el.innerHTML = list.map((s,i)=>{
+    const rankClass = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    return `<div class="match-row"><div class="mmid"><div class="mteams"><span class="rank-badge ${rankClass}">${i+1}</span>${escapeHtml(s.name)}</div><div class="mmeta">${teamName(s.teamId)}</div></div><div class="mscore">${s.points||0}</div></div>`;
+  }).join('');
 }
 
 // ---------- MURAL ----------
