@@ -83,11 +83,15 @@ function computeFieldDelays(){
 
 // ---------- navigation ----------
 const MORE_TABS = ['regulamento','artilharia','times','sumula','avisos','campos','mapa'];
+// o card de contagem/placar ao vivo só faz sentido na home e nas telas de jogos/placar
+const NOW_CARD_TABS = ['inicio','placares','campos'];
 function goToTab(tab){
   document.querySelectorAll('.screen').forEach(s=> s.classList.toggle('active', s.id==='screen-'+tab));
   document.querySelectorAll('.bn-btn[data-tab]').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
   const moreBtn = document.getElementById('moreNavBtn');
   if(moreBtn) moreBtn.classList.toggle('active', MORE_TABS.includes(tab) && !['cronograma','grupos','placares','inicio'].includes(tab));
+  const nowCard = document.getElementById('nowCard');
+  if(nowCard) nowCard.style.display = NOW_CARD_TABS.includes(tab) ? '' : 'none';
   window.scrollTo({top:0});
 }
 document.querySelectorAll('.bn-btn[data-tab]').forEach(btn=>{
