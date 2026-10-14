@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/styles.css">
 </head>
-<body>
+<body class="admin-body">
 
 <div class="admin-login" id="loginBox">
   <img class="site-logo" src="../assets/logo.png" alt="SPAC Lions SVNS 2026" style="margin-bottom:22px;">
@@ -37,7 +37,7 @@
     <button class="admin-tab" data-atab="jogos">Jogos</button>
     <button class="admin-tab" data-atab="placar">Placar ao vivo</button>
     <button class="admin-tab" data-atab="artilheiros">Artilheiros</button>
-    <button class="admin-tab" data-atab="sumulas">Súmulas</button>
+    <button class="admin-tab" data-atab="sumulas">Súmulas<span class="tab-badge" id="sumPendingBadge" style="display:none;"></span></button>
     <button class="admin-tab" data-atab="avisos">Avisos</button>
   </div>
 
@@ -54,7 +54,8 @@
       <div class="field"><label>Grupo (opcional)</label><input id="fTeamGrupo" placeholder="Ex: A"></div>
     </div>
     <button class="btn" id="btnAddTeam">Adicionar time</button>
-    <div style="margin-top:16px;" id="adminTeamList"></div>
+    <p class="section-lead">Monte os grupos aqui (campo "grupo" editável direto na lista). Depois, na aba Jogos, gere os confrontos da fase de grupos automaticamente — e ajuste à vontade.</p>
+    <div id="adminTeamList"></div>
   </div>
 
   <!-- JOGOS -->
@@ -74,6 +75,9 @@
         </select>
       </div>
     </div>
+    <button class="btn-ghost btn-block" id="btnGenGroupMatches" type="button" style="margin-bottom:16px;">Gerar confrontos da fase de grupos (categoria acima)</button>
+    <hr class="div">
+    <p class="section-lead" style="margin-top:0;">Ou adicione um jogo específico:</p>
     <div class="field-grid2">
       <div class="field"><label>Time A</label><select id="fMatchTeamA"></select></div>
       <div class="field"><label>Time B</label><select id="fMatchTeamB"></select></div>

@@ -64,6 +64,9 @@ function fmtHM(ts){
   if(!ts) return '--:--';
   return new Date(ts).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
 }
+function faseLabel(f){
+  return {grupo:'Fase de grupos', quartas:'Quartas de final', semi:'Semifinal', final:'Final'}[f] || f;
+}
 function matchTimestamp(dataStr, horarioStr){
   if(!dataStr || !horarioStr) return null;
   const m = /^(\d{1,2}):(\d{2})$/.exec(String(horarioStr).trim());
@@ -145,6 +148,39 @@ document.getElementById('btnAddMatch').onclick = async ()=>{
   // Mantém campo/data selecionados (facilita cadastrar vários jogos seguidos
   // no mesmo campo) e limpa o horário pra já sugerir o próximo slot de 17min.
   document.getElementById('fMatchHorario').value = '';
+};
+
+// Gera os confrontos de pontos corridos (todos x todos) dentro de cada grupo
+// da categoria selecionada, a partir do campo "grupo" cadastrado em Times.
+// Nunca duplica um confronto que já existe (mesma categoria/fase/dupla de
+// times) — pode rodar de novo depois de ajustar os grupos que só cria o que
+// falta. Horário e campo saem em branco: dá pra editar tudo livremente na
+// lista de jogos logo abaixo.
+document.getElementById('btnGenGroupMatches').onclick = async ()=>{
+  const cat = document.getElementById('fMatchCat').value;
+  const teams = TEAMS.filter(t=>t.categoria===cat);
+  if(teams.length<2){ alert('Cadastre pelo menos 2 times dessa categoria em "Times" primeiro.'); return; }
+  const byGroup = {};
+  teams.forEach(t=>{ const g = t.grupo || 'Único'; (byGroup[g] = byGroup[g] || []).push(t); });
+  const existingPairs = new Set(
+    MATCHES.filter(m=>m.categoria===cat && m.fase==='grupo')
+      .map(m=> [m.teamAId,m.teamBId].sort().join('|'))
+  );
+  const toCreate = [];
+  Object.values(byGroup).forEach(list=>{
+    for(let i=0;i<list.length;i++) for(let j=i+1;j<list.length;j++){
+      const key = [list[i].id,list[j].id].sort().join('|');
+      if(!existingPairs.has(key)) toCreate.push({teamAId:list[i].id, teamBId:list[j].id});
+    }
+  });
+  if(toCreate.length===0){ alert('Nenhum confronto novo pra gerar: ou já existem todos os jogos da fase de grupos dessa categoria, ou falta time cadastrado.'); return; }
+  if(!confirm(`Gerar ${toCreate.length} jogo(s) de fase de grupos pra ${cat}, um confronto por dupla dentro de cada grupo (times sem grupo definido jogam entre si)? Horário e campo ficam em branco pra você organizar.`)) return;
+  for(const pair of toCreate){
+    await addDoc(collection(db,'matches'), {
+      categoria: cat, fase:'grupo', teamAId:pair.teamAId, teamBId:pair.teamBId,
+      data:'2026-12-12', horario:'', campo:'', status:'agendado', scoreA:null, scoreB:null
+    });
+  }
 };
 
 // ---------- ARTILHEIROS ----------
@@ -257,7 +293,15 @@ function renderAdminPlacar(){
   if(startBtn) startBtn.onclick = ()=> updateDoc(doc(db,'matches',m.id), { status:'ao_vivo', startedAt: Date.now() });
   function rosterHtml(teamId, teamSide){
     const roster = getApprovedRoster(teamId, m.data);
-    if(roster===null) return '<p class="no-roster">Nenhuma súmula aprovada pra esse time. Aprove em Súmulas, ou lance manualmente em Artilheiros.</p>';
+    if(roster===null){
+      const pending = SUMULAS.filter(s=>s.teamId===teamId && (s.status||'pendente')==='pendente')
+        .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
+      if(pending){
+        return `<p class="no-roster">Súmula enviada, mas ainda não aprovada (${(pending.atletas||[]).length} atletas).</p>
+        <button class="btn-ghost" data-approve-roster="${pending.id}">Aprovar súmula agora</button>`;
+      }
+      return '<p class="no-roster">Nenhuma súmula enviada ainda pra esse time. Peça pro time enviar pelo site, ou lance manualmente em Artilheiros.</p>';
+    }
     if(roster.length===0) return '<p class="no-roster">Súmula aprovada sem atletas listados.</p>';
     return roster.map(atleta=>`
       <div class="player-row">
@@ -272,6 +316,9 @@ function renderAdminPlacar(){
   rosterA.innerHTML = rosterHtml(m.teamAId,'A');
   rosterB.innerHTML = rosterHtml(m.teamBId,'B');
   [rosterA, rosterB].forEach(el=>{
+    el.querySelectorAll('[data-approve-roster]').forEach(b=>{
+      b.onclick = ()=> updateDoc(doc(db,'sumulas',b.dataset.approveRoster), {status:'aprovada'});
+    });
     el.querySelectorAll('[data-score]').forEach(b=>{
       b.onclick = ()=>{
         const [side, encName, tipo, pts] = b.dataset.score.split('|');
@@ -293,6 +340,9 @@ function renderAdminPlacar(){
 
 // ---------- SÚMULAS ----------
 function renderAdminSumulas(){
+  const pendingCount = SUMULAS.filter(s=>(s.status||'pendente')==='pendente').length;
+  const badge = document.getElementById('sumPendingBadge');
+  if(badge){ badge.style.display = pendingCount>0 ? 'inline-flex' : 'none'; badge.textContent = pendingCount; }
   const filterEl = document.getElementById('adminSumFilter');
   filterEl.innerHTML = '';
   [['pendente','Pendentes'],['aprovada','Aprovadas'],['all','Todas']].forEach(([v,l])=>{
@@ -332,14 +382,28 @@ function renderAdminLists(){
 
   const tEl = document.getElementById('adminTeamList');
   tEl.innerHTML = TEAMS.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(t=>
-    `<div class="admin-list-item"><div class="il"><b>${escapeHtml(t.name)}</b><span>${t.categoria}${t.grupo?(' · Grupo '+t.grupo):''}</span></div><button class="icon-btn danger" data-del-team="${t.id}">remover</button></div>`
+    `<div class="admin-list-item"><div class="il"><b>${escapeHtml(t.name)}</b><span>${t.categoria}</span></div>
+    <div class="controls">
+      <input type="text" placeholder="grupo" style="width:48px;" value="${escapeHtml(t.grupo||'')}" data-grupo="${t.id}">
+      <button class="icon-btn danger" data-del-team="${t.id}">remover</button>
+    </div></div>`
   ).join('') || '<p class="empty">Nenhum time ainda.</p>';
   tEl.querySelectorAll('[data-del-team]').forEach(b=> b.onclick = ()=> deleteDoc(doc(db,'teams',b.dataset.delTeam)));
+  tEl.querySelectorAll('[data-grupo]').forEach(inp=> inp.onchange = ()=> updateDoc(doc(db,'teams',inp.dataset.grupo), {grupo: inp.value.trim()||null}));
 
   const mEl = document.getElementById('adminMatchList');
   mEl.innerHTML = MATCHES.slice().sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.horario||'').localeCompare(b.horario||'')).map(m=>
-    `<div class="admin-list-item"><div class="il"><b>${teamName(m.teamAId,m.teamAName)} vs ${teamName(m.teamBId,m.teamBName)}</b><span>${m.categoria} · ${m.data==='2026-12-13'?'Dom':'Sáb'} ${m.horario||''}${m.campo?(' · '+m.campo):''}</span></div>
+    `<div class="admin-list-item"><div class="il"><b>${teamName(m.teamAId,m.teamAName)} vs ${teamName(m.teamBId,m.teamBName)}</b><span>${m.categoria} · ${faseLabel(m.fase)}</span></div>
     <div class="controls">
+      <select data-dia="${m.id}">
+        <option value="2026-12-12" ${m.data==='2026-12-12'?'selected':''}>Sáb</option>
+        <option value="2026-12-13" ${m.data==='2026-12-13'?'selected':''}>Dom</option>
+      </select>
+      <input type="text" placeholder="HH:MM" style="width:46px;" value="${escapeHtml(m.horario||'')}" data-horario="${m.id}">
+      <select data-campo="${m.id}">
+        <option value="Grand Stand" ${m.campo==='Grand Stand'?'selected':''}>Grand Stand</option>
+        <option value="Campo 2" ${m.campo==='Campo 2'?'selected':''}>Campo 2</option>
+      </select>
       <select data-status="${m.id}">
         <option value="agendado" ${m.status==='agendado'?'selected':''}>Agendado</option>
         <option value="ao_vivo" ${m.status==='ao_vivo'?'selected':''}>Ao vivo</option>
@@ -349,8 +413,11 @@ function renderAdminLists(){
       <input type="number" placeholder="B" value="${m.scoreB??''}" data-score-b="${m.id}">
       <button class="icon-btn danger" data-del-match="${m.id}">x</button>
     </div></div>`
-  ).join('') || '<p class="empty">Nenhum jogo ainda.</p>';
+  ).join('') || '<p class="empty">Nenhum jogo ainda. Cadastre times com grupo em "Times" e use "Gerar confrontos" acima, ou adicione um por um.</p>';
   mEl.querySelectorAll('[data-del-match]').forEach(b=> b.onclick = ()=> deleteDoc(doc(db,'matches',b.dataset.delMatch)));
+  mEl.querySelectorAll('[data-dia]').forEach(sel=> sel.onchange = ()=> updateDoc(doc(db,'matches',sel.dataset.dia), {data: sel.value}));
+  mEl.querySelectorAll('[data-horario]').forEach(inp=> inp.onchange = ()=> updateDoc(doc(db,'matches',inp.dataset.horario), {horario: inp.value.trim()}));
+  mEl.querySelectorAll('[data-campo]').forEach(sel=> sel.onchange = ()=> updateDoc(doc(db,'matches',sel.dataset.campo), {campo: sel.value}));
   mEl.querySelectorAll('[data-status]').forEach(sel=> sel.onchange = ()=>{
     const match = MATCHES.find(x=>x.id===sel.dataset.status);
     const patch = { status: sel.value };
