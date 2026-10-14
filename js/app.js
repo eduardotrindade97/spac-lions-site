@@ -54,10 +54,15 @@ function computeFieldDelays(){
       if(m.startedAt){
         const actualDelayMs = m.startedAt - (schedTs ?? m.startedAt);
         cursorDelayMs = Math.max(0, actualDelayMs);
-        out[m.id] = { delayMin: Math.round(cursorDelayMs/60000), estimatedTs: m.startedAt, scheduledTs: schedTs };
+        out[m.id] = { delayMin: Math.round(cursorDelayMs/60000), estimatedTs: m.startedAt, scheduledTs: schedTs, manual:false };
+      } else if(m.horarioManual){
+        // ajuste manual do organizador (sobrepõe o cálculo automático em caso de desencontro)
+        const manualDelayMs = m.horarioManual - (schedTs ?? m.horarioManual);
+        cursorDelayMs = Math.max(0, manualDelayMs);
+        out[m.id] = { delayMin: Math.round(cursorDelayMs/60000), estimatedTs: m.horarioManual, scheduledTs: schedTs, manual:true };
       } else {
         const estimatedTs = schedTs!=null ? schedTs + cursorDelayMs : null;
-        out[m.id] = { delayMin: Math.round(cursorDelayMs/60000), estimatedTs, scheduledTs: schedTs };
+        out[m.id] = { delayMin: Math.round(cursorDelayMs/60000), estimatedTs, scheduledTs: schedTs, manual:false };
       }
     });
   });
@@ -292,7 +297,7 @@ function renderCampos(){
       if(d && d.delayMin>0) delayLine = `<div class="fmc-delay">atraso de ~${d.delayMin}min em relação ao previsto</div>`;
     } else if(isFuture && d && d.delayMin>0 && d.estimatedTs){
       timeLine = `${m.horario||'--:--'} <span class="fmc-strike">prev.</span> ${fmtHM(d.estimatedTs)}`;
-      delayLine = `<div class="fmc-delay">atraso de ~${d.delayMin}min no campo</div>`;
+      delayLine = `<div class="fmc-delay">atraso de ~${d.delayMin}min no campo${d.manual?' (ajustado pela organização)':''}</div>`;
     }
     parts.push(`
       <div class="field-match-card${m.status==='ao_vivo'?' is-live':''}">

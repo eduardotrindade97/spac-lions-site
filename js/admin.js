@@ -301,7 +301,10 @@ function renderAdminPlacar(){
   } else if(m.status==='ao_vivo' && m.startedAt){
     const schedTs = matchTimestamp(m.data, m.horario);
     const delayMin = schedTs!=null ? Math.round((m.startedAt-schedTs)/60000) : null;
-    startHtml = `<div class="start-box start-box-live">Começou às <b>${fmtHM(m.startedAt)}</b>${(delayMin!==null && delayMin>0) ? ` · atraso de ~${delayMin}min` : ''}</div>`;
+    startHtml = `<div class="start-box start-box-live">
+      <div>Começou às <b>${fmtHM(m.startedAt)}</b>${(delayMin!==null && delayMin>0) ? ` · atraso de ~${delayMin}min` : ''}</div>
+      <div class="start-fix"><label>Corrigir horário de início</label><input type="text" placeholder="HH:MM" id="fixStartedAt" value="${fmtHM(m.startedAt)}"><button class="btn-ghost" id="btnFixStarted">salvar</button></div>
+    </div>`;
   }
   scoreboard.innerHTML = `${startHtml}<div class="scoreboard">
     <div class="side"><b>${escapeHtml(nameA)}</b><div class="sc">${m.scoreA??0}</div></div>
@@ -309,6 +312,13 @@ function renderAdminPlacar(){
     <div class="side"><b>${escapeHtml(nameB)}</b><div class="sc">${m.scoreB??0}</div></div></div>`;
   const startBtn = document.getElementById('btnStartMatch');
   if(startBtn) startBtn.onclick = ()=> updateDoc(doc(db,'matches',m.id), { status:'ao_vivo', startedAt: Date.now() });
+  const fixBtn = document.getElementById('btnFixStarted');
+  if(fixBtn) fixBtn.onclick = ()=>{
+    const raw = document.getElementById('fixStartedAt').value.trim();
+    const ts = matchTimestamp(m.data, raw);
+    if(ts==null){ alert('Use o formato HH:MM, ex: 09:35'); return; }
+    updateDoc(doc(db,'matches',m.id), { startedAt: ts });
+  };
   function rosterHtml(teamId, teamSide){
     const roster = getApprovedRoster(teamId, m.data);
     if(roster===null){
@@ -456,6 +466,7 @@ function renderAdminLists(){
         <option value="ao_vivo" ${m.status==='ao_vivo'?'selected':''}>Ao vivo</option>
         <option value="encerrado" ${m.status==='encerrado'?'selected':''}>Encerrado</option>
       </select>
+      <input type="text" placeholder="auto" title="Início real/estimado (HH:MM) — edite pra corrigir em caso de desencontro com o cálculo automático" style="width:52px;" value="${escapeHtml(fmtHM(m.startedAt||m.horarioManual).replace('--:--',''))}" data-inicio-real="${m.id}">
       <input type="number" placeholder="A" value="${m.scoreA??''}" data-score-a="${m.id}">
       <input type="number" placeholder="B" value="${m.scoreB??''}" data-score-b="${m.id}">
       <button class="icon-btn danger" data-del-match="${m.id}">x</button>
@@ -470,6 +481,21 @@ function renderAdminLists(){
     const patch = { status: sel.value };
     if(sel.value==='ao_vivo' && match && !match.startedAt) patch.startedAt = Date.now();
     updateDoc(doc(db,'matches',sel.dataset.status), patch);
+  });
+  mEl.querySelectorAll('[data-inicio-real]').forEach(inp=> inp.onchange = ()=>{
+    const match = MATCHES.find(x=>x.id===inp.dataset.inicioReal);
+    if(!match) return;
+    const raw = inp.value.trim();
+    if(raw===''){
+      // volta pro cálculo automático
+      const patch = match.status==='agendado' ? { horarioManual: null } : { startedAt: null };
+      updateDoc(doc(db,'matches',match.id), patch);
+      return;
+    }
+    const ts = matchTimestamp(match.data, raw);
+    if(ts==null){ alert('Use o formato HH:MM, ex: 09:35'); inp.value = fmtHM(match.startedAt||match.horarioManual).replace('--:--',''); return; }
+    const patch = match.status==='agendado' ? { horarioManual: ts } : { startedAt: ts };
+    updateDoc(doc(db,'matches',match.id), patch);
   });
   mEl.querySelectorAll('[data-score-a]').forEach(inp=> inp.onchange = ()=> updateDoc(doc(db,'matches',inp.dataset.scoreA), {scoreA: inp.value===''?null:parseInt(inp.value)}));
   mEl.querySelectorAll('[data-score-b]').forEach(inp=> inp.onchange = ()=> updateDoc(doc(db,'matches',inp.dataset.scoreB), {scoreB: inp.value===''?null:parseInt(inp.value)}));

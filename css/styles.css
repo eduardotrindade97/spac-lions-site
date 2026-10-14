@@ -378,6 +378,10 @@ hr.div{border:none;border-top:1px solid var(--line);margin:20px 0;}
 .start-box{background:var(--gold-soft);border:1px solid rgba(217,178,104,0.3);border-radius:var(--radius-sm);padding:13px 14px;margin-bottom:12px;}
 .start-info{font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:10px;}
 .start-box-live{background:var(--live-soft);border-color:rgba(236,107,87,0.3);font-size:12.5px;font-weight:700;color:var(--white);padding:12px 14px;}
+.start-fix{display:flex;align-items:center;gap:7px;margin-top:9px;font-weight:600;font-size:11px;}
+.start-fix label{color:var(--dim);font-weight:600;white-space:nowrap;}
+.start-fix input{width:56px;background:var(--navy);border:1px solid var(--line);color:var(--white);border-radius:7px;padding:5px 7px;font-size:11.5px;}
+.start-fix button{padding:5px 10px;font-size:10.5px;}
 .scoreboard{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(165deg, var(--navy-3), var(--navy-2));border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:18px;box-shadow:var(--shadow-sm);}
 .scoreboard .side{flex:1;text-align:center;min-width:0;}
 .scoreboard .side b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
