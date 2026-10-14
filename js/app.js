@@ -22,9 +22,10 @@ function teamName(id, fallback){
 function escapeHtml(s){
   return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-// Nome de exibição do campo (o valor salvo no banco continua "Grand Stand" pra não quebrar jogos já cadastrados).
+// Nome de exibição do campo (o valor salvo no banco continua "Grand Stand"/"Campo 2" pra não quebrar jogos já cadastrados).
+const CAMPO_LABELS = { 'Grand Stand':'Grand Ground (Campo 1)', 'Campo 2':'Lions Field (Campo 2)' };
 function campoLabel(campo){
-  return campo==='Grand Stand' ? 'Grandstand' : (campo||'');
+  return CAMPO_LABELS[campo] || (campo||'');
 }
 function fmtTime(ts){
   if(!ts) return '';

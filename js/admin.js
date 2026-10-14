@@ -67,9 +67,10 @@ function fmtHM(ts){
 function faseLabel(f){
   return {grupo:'Fase de grupos', quartas:'Quartas de final', semi:'Semifinal', final:'Final'}[f] || f;
 }
-// Nome de exibição do campo (o valor salvo no banco continua "Grand Stand" pra não quebrar jogos já cadastrados).
+// Nome de exibição do campo (o valor salvo no banco continua "Grand Stand"/"Campo 2" pra não quebrar jogos já cadastrados).
+const CAMPO_LABELS = { 'Grand Stand':'Grand Ground (Campo 1)', 'Campo 2':'Lions Field (Campo 2)' };
 function campoLabel(campo){
-  return campo==='Grand Stand' ? 'Grandstand' : (campo||'');
+  return CAMPO_LABELS[campo] || (campo||'');
 }
 function matchTimestamp(dataStr, horarioStr){
   if(!dataStr || !horarioStr) return null;
@@ -462,8 +463,8 @@ function renderAdminLists(){
       </select>
       <input type="text" placeholder="HH:MM" style="width:46px;" value="${escapeHtml(m.horario||'')}" data-horario="${m.id}">
       <select data-campo="${m.id}">
-        <option value="Grand Stand" ${m.campo==='Grand Stand'?'selected':''}>Grandstand</option>
-        <option value="Campo 2" ${m.campo==='Campo 2'?'selected':''}>Campo 2</option>
+        <option value="Grand Stand" ${m.campo==='Grand Stand'?'selected':''}>Grand Ground (Campo 1)</option>
+        <option value="Campo 2" ${m.campo==='Campo 2'?'selected':''}>Lions Field (Campo 2)</option>
       </select>
       <select data-status="${m.id}">
         <option value="agendado" ${m.status==='agendado'?'selected':''}>Agendado</option>
