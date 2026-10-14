@@ -82,10 +82,6 @@ svg.ico{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-wi
 .app{max-width:720px;margin:0 auto;padding-bottom:calc(88px + env(safe-area-inset-bottom));}
 
 /* ---------- TOPBAR ---------- */
-.topbar{
-  display:flex;align-items:center;justify-content:center;
-  padding:20px var(--gutter) 10px;
-}
 .brand-mark{
   width:38px;height:38px;border-radius:11px;flex:none;
   background:linear-gradient(155deg, var(--gold) 0%, #B7893E 100%);
@@ -100,21 +96,26 @@ svg.ico{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-wi
 .site-logo{height:34px;width:auto;display:block;}
 .site-logo-sm{height:24px;}
 
-/* ---------- HERO COVER (key visual, sem texto sobreposto) ---------- */
+/* ---------- HERO COVER (key visual, funde nas bordas com o fundo) ---------- */
 .hero-cover{
-  margin:4px var(--gutter) 10px;
-  height:172px;
-  border-radius:var(--radius-lg);
+  margin:0 0 10px;
+  padding-top:env(safe-area-inset-top);
+  height:220px;
   background-image:url('../assets/kv.jpg');
   background-size:cover;
-  background-position:center 32%;
-  box-shadow:var(--shadow-md);
+  background-position:center 30%;
   position:relative;
   overflow:hidden;
 }
+.hero-cover::before{
+  content:'';position:absolute;inset:0;
+  background:
+    linear-gradient(90deg, var(--ink) 0%, rgba(6,15,28,0) 16%, rgba(6,15,28,0) 84%, var(--ink) 100%),
+    linear-gradient(180deg, var(--ink) 0%, rgba(6,15,28,0) 26%, rgba(6,15,28,0) 100%);
+}
 .hero-cover::after{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg, rgba(6,15,28,0) 55%, rgba(6,15,28,0.4) 100%);
+  background:linear-gradient(180deg, rgba(6,15,28,0) 50%, rgba(6,15,28,0.55) 100%);
 }
 
 /* ---------- NOW CARD (data, contagem, ao vivo) ---------- */
