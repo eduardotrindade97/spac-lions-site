@@ -24,13 +24,20 @@ function escapeHtml(s){
 }
 // Nome de exibição do campo (o valor salvo no banco continua "Grand Stand"/"Campo 2" pra não quebrar jogos já cadastrados).
 const CAMPO_NAMES = { 'Grand Stand':{name:'Main Ground', sub:'Campo 1'}, 'Campo 2':{name:'Lions Field', sub:'Campo 2'} };
+// Valores antigos/digitados à mão ("Campo 1", "campo 1", "Grandstand"...) viram o valor canônico.
+function normalizeCampo(campo){
+  const k = String(campo||'').trim().toLowerCase().replace(/\s+/g,'');
+  if(['campo1','grandstand','grandground','mainground'].includes(k)) return 'Grand Stand';
+  if(['campo2','lionsfield'].includes(k)) return 'Campo 2';
+  return campo||'';
+}
 function campoLabel(campo){
-  const c = CAMPO_NAMES[campo];
+  const c = CAMPO_NAMES[normalizeCampo(campo)];
   return c ? `${c.name} (${c.sub})` : (campo||'');
 }
 // versão em HTML: nome do campo em destaque, "(Campo N)" menor e discreto ao lado.
 function campoLabelHtml(campo){
-  const c = CAMPO_NAMES[campo];
+  const c = CAMPO_NAMES[normalizeCampo(campo)];
   if(!c) return escapeHtml(campo||'');
   return `${escapeHtml(c.name)} <span class="campo-sub">(${escapeHtml(c.sub)})</span>`;
 }
@@ -58,7 +65,7 @@ function matchTimestamp(dataStr, horarioStr){
 function computeFieldDelays(){
   const out = {};
   FIELDS.forEach(field=>{
-    const list = MATCHES.filter(m=>(m.campo||'')===field)
+    const list = MATCHES.filter(m=>normalizeCampo(m.campo)===field)
       .sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.horario||'').localeCompare(b.horario||''));
     let cursorDelayMs = 0;
     list.forEach(m=>{
@@ -459,7 +466,7 @@ function renderCampos(){
     if(i>0) chip.textContent = i===1 ? 'Sáb 12/12' : 'Dom 13/12';
   });
 
-  let list = MATCHES.filter(m=>(m.campo||'')===filters.camposField);
+  let list = MATCHES.filter(m=>normalizeCampo(m.campo)===filters.camposField);
   if(filters.camposDay!=='all') list = list.filter(m=>m.data===filters.camposDay);
   list.sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.horario||'').localeCompare(b.horario||''));
 

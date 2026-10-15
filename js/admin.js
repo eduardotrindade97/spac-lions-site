@@ -69,13 +69,20 @@ function faseLabel(f){
 }
 // Nome de exibição do campo (o valor salvo no banco continua "Grand Stand"/"Campo 2" pra não quebrar jogos já cadastrados).
 const CAMPO_NAMES = { 'Grand Stand':{name:'Main Ground', sub:'Campo 1'}, 'Campo 2':{name:'Lions Field', sub:'Campo 2'} };
+// Valores antigos/digitados à mão ("Campo 1", "campo 1", "Grandstand"...) viram o valor canônico.
+function normalizeCampo(campo){
+  const k = String(campo||'').trim().toLowerCase().replace(/\s+/g,'');
+  if(['campo1','grandstand','grandground','mainground'].includes(k)) return 'Grand Stand';
+  if(['campo2','lionsfield'].includes(k)) return 'Campo 2';
+  return campo||'';
+}
 function campoLabel(campo){
-  const c = CAMPO_NAMES[campo];
+  const c = CAMPO_NAMES[normalizeCampo(campo)];
   return c ? `${c.name} (${c.sub})` : (campo||'');
 }
 // versão em HTML: nome do campo em destaque, "(Campo N)" menor e discreto ao lado.
 function campoLabelHtml(campo){
-  const c = CAMPO_NAMES[campo];
+  const c = CAMPO_NAMES[normalizeCampo(campo)];
   if(!c) return escapeHtml(campo||'');
   return `${escapeHtml(c.name)} <span class="campo-sub">(${escapeHtml(c.sub)})</span>`;
 }
@@ -133,7 +140,7 @@ function suggestHorario(){
   const data = document.getElementById('fMatchData').value;
   const horarioInput = document.getElementById('fMatchHorario');
   if(horarioInput.value.trim()) return;
-  const sameSlot = MATCHES.filter(m=>m.campo===campo && m.data===data && m.horario)
+  const sameSlot = MATCHES.filter(m=>normalizeCampo(m.campo)===campo && m.data===data && m.horario)
     .sort((a,b)=>String(a.horario).localeCompare(String(b.horario)));
   if(sameSlot.length===0) return;
   const last = sameSlot[sameSlot.length-1];
@@ -470,8 +477,8 @@ function renderAdminLists(){
       </select>
       <input type="text" placeholder="HH:MM" style="width:46px;" value="${escapeHtml(m.horario||'')}" data-horario="${m.id}">
       <select data-campo="${m.id}">
-        <option value="Grand Stand" ${m.campo==='Grand Stand'?'selected':''}>Main Ground (Campo 1)</option>
-        <option value="Campo 2" ${m.campo==='Campo 2'?'selected':''}>Lions Field (Campo 2)</option>
+        <option value="Grand Stand" ${normalizeCampo(m.campo)==='Grand Stand'?'selected':''}>Main Ground (Campo 1)</option>
+        <option value="Campo 2" ${normalizeCampo(m.campo)==='Campo 2'?'selected':''}>Lions Field (Campo 2)</option>
       </select>
       <select data-status="${m.id}">
         <option value="agendado" ${m.status==='agendado'?'selected':''}>Agendado</option>
