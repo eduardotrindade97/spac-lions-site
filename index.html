@@ -104,20 +104,18 @@
 
   <!-- ================= MAPA DO CLUBE ================= -->
   <div class="screen" id="screen-mapa">
-    <div class="section" style="padding-bottom:12px;">
-      <div class="section-head"><h2>Mapa do clube</h2></div>
-      <p class="section-lead">Arraste pra navegar e belisque a tela (ou use a roda do mouse) pra dar zoom. Toque em um campo pra ver o cronograma e os jogos ao vivo dele.</p>
-    </div>
     <div class="map-stage" id="mapStage">
       <div class="map-canvas" id="mapCanvas">
         <img class="map-img" id="mapImg" src="assets/map-club.jpg" alt="Mapa aéreo do SPAC com os campos Main Ground e Lions Field" draggable="false">
         <button class="map-hotspot" data-campo="Grand Stand" aria-label="Main Ground" style="clip-path:polygon(39.7% 28.8%, 58.6% 34.7%, 53.4% 64.5%, 33.5% 59.1%);"></button>
         <button class="map-hotspot" data-campo="Campo 2" aria-label="Lions Field" style="clip-path:polygon(60.5% 37.6%, 81.7% 45.2%, 78.5% 73.7%, 56.6% 66.9%);"></button>
       </div>
+      <div class="map-title"><h2>Mapa do clube</h2></div>
+      <div class="map-hint" id="mapHint">Arraste e belisque pra navegar · toque num campo pra ver os jogos</div>
       <div class="map-zoom-ctrls">
         <button type="button" id="mapZoomIn" aria-label="Aumentar zoom">+</button>
         <button type="button" id="mapZoomOut" aria-label="Diminuir zoom">–</button>
-        <button type="button" id="mapZoomReset" aria-label="Centralizar mapa"><svg class="ico"><use href="#i-pin"/></svg></button>
+        <button type="button" id="mapZoomReset" aria-label="Centralizar nos campos"><svg class="ico"><use href="#i-pin"/></svg></button>
       </div>
     </div>
   </div>

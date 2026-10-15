@@ -91,6 +91,7 @@ function goToTab(tab){
   const moreBtn = document.getElementById('moreNavBtn');
   if(moreBtn) moreBtn.classList.toggle('active', MORE_TABS.includes(tab) && !['cronograma','grupos','placares','inicio'].includes(tab));
   const nowCard = document.getElementById('nowCard');
+  document.body.classList.toggle('on-map', tab==='mapa');
   if(nowCard) nowCard.style.display = NOW_CARD_TABS.includes(tab) ? '' : 'none';
   window.scrollTo({top:0});
 }
@@ -144,12 +145,21 @@ document.querySelectorAll('.map-hotspot').forEach(btn=>{
     constrain();
     apply();
   }
-  function reset(){
-    fitScale = stage.clientWidth / naturalW;
+  // ponto de interesse inicial: o centro dos dois campos (em % da imagem)
+  const FOCUS = { x:0.575, y:0.50 };
+  function computeLimits(){
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    // "cover": a imagem sempre preenche o palco, sem faixas vazias nas bordas
+    fitScale = Math.max(sw/naturalW, sh/naturalH);
     minScale = fitScale;
-    scale = fitScale;
-    tx = (stage.clientWidth - naturalW*scale)/2;
-    ty = (stage.clientHeight - naturalH*scale)/2;
+    maxScale = Math.max(fitScale*4, 1.6);
+  }
+  function reset(){
+    computeLimits();
+    // abre já um pouco aproximado, centrado nos campos, pra ficar legível no celular
+    scale = minScale;
+    tx = stage.clientWidth/2  - FOCUS.x*naturalW*scale;
+    ty = stage.clientHeight/2 - FOCUS.y*naturalH*scale;
     constrain();
     apply();
   }
@@ -165,7 +175,15 @@ document.querySelectorAll('.map-hotspot').forEach(btn=>{
   // então o cálculo de fitScale acima roda com o palco com largura zero. Um
   // ResizeObserver no palco recalcula assim que ele ganha tamanho real (ao ficar
   // visível) e também em qualquer resize/mudança de orientação depois disso.
-  function trySize(){ if(naturalW && stage.clientWidth>0) reset(); }
+  let sized = false;
+  function trySize(){
+    if(!naturalW || stage.clientWidth<=0) return;
+    if(!sized){ sized = true; reset(); return; }
+    // já inicializado (ex.: barra do navegador mobile mudou a altura): mantém a posição do usuário
+    const prevMin = minScale; computeLimits();
+    scale = clamp(scale*(minScale/prevMin), minScale, maxScale);
+    constrain(); apply();
+  }
   if('ResizeObserver' in window){
     new ResizeObserver(trySize).observe(stage);
   } else {
@@ -181,6 +199,10 @@ document.querySelectorAll('.map-hotspot').forEach(btn=>{
   let pinchStartDist = 0, pinchStartScale = 1, pinchMid = {x:0,y:0};
   let lastTapAt = 0;
 
+  const navEl = document.querySelector('.bottom-nav');
+  if(navEl) document.documentElement.style.setProperty('--navh', (navEl.offsetHeight - parseFloat(getComputedStyle(navEl).paddingBottom||0)) + 'px');
+  const hint = document.getElementById('mapHint');
+  function hideHint(){ if(hint) hint.classList.add('hide'); }
   stage.addEventListener('pointerdown', e=>{
     if(!naturalW) return;
     pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
@@ -217,7 +239,7 @@ document.querySelectorAll('.map-hotspot').forEach(btn=>{
     } else if(pointers.size===1){
       if(!dragging){
         if(Math.hypot(e.clientX-downX, e.clientY-downY) < DRAG_THRESHOLD) return;
-        dragging = true;
+        dragging = true; hideHint();
         if(!captured){ stage.setPointerCapture(e.pointerId); captured = true; }
         stage.classList.add('is-dragging');
       }
@@ -237,7 +259,7 @@ document.querySelectorAll('.map-hotspot').forEach(btn=>{
       const now = Date.now();
       if(now-lastTapAt < 300){
         const rect = stage.getBoundingClientRect();
-        setScale(scale>fitScale*1.3 ? fitScale : fitScale*2.4, e.clientX-rect.left, e.clientY-rect.top);
+        setScale(scale>fitScale*1.9 ? fitScale : fitScale*2.8, e.clientX-rect.left, e.clientY-rect.top);
       }
       lastTapAt = now;
     }
@@ -248,10 +270,10 @@ document.querySelectorAll('.map-hotspot').forEach(btn=>{
   // roda do mouse (desktop)
   stage.addEventListener('wheel', e=>{
     if(!naturalW) return;
-    e.preventDefault();
+    e.preventDefault(); hideHint();
     const rect = stage.getBoundingClientRect();
     const ox = e.clientX-rect.left, oy = e.clientY-rect.top;
-    setScale(scale + (e.deltaY>0?-0.18:0.18)*scale, ox, oy);
+    setScale(scale*Math.exp(-e.deltaY*(e.ctrlKey?0.01:0.0016)), ox, oy);
   }, { passive:false });
 
   document.getElementById('mapZoomIn')?.addEventListener('click', ()=> setScale(scale*1.4, stage.clientWidth/2, stage.clientHeight/2));
