@@ -13,7 +13,7 @@ import { firebaseConfig } from "./firebase-config.js";
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-export const CATS = ["Masculino Adulto","Feminino Adulto","Vets","Juvenil","Universitário Masculino","Universitário Feminino"];
+export const CATS = ["Masculino Adulto","Feminino Adulto","Vets","Juvenil Masculino","Juvenil Feminino","Universitário Masculino","Universitário Feminino"];
 export const EVENT_DATE = new Date('2026-12-12T08:00:00-03:00');
 
 // Tempos padrão de uma partida de rugby sevens, usados pra sugerir horários

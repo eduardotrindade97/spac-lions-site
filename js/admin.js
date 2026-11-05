@@ -123,6 +123,35 @@ document.getElementById('btnAddTeam').onclick = async ()=>{
   document.getElementById('fTeamGrupo').value = '';
 };
 
+// Lista inicial de inscritos (05/11). "confirmado:false" = ainda sem confirmação da inscrição.
+const SEED_TEAMS = [
+  ['Feminino Adulto','SPAC',1],['Feminino Adulto','União',1],['Feminino Adulto','Pasteur',1],['Feminino Adulto','Curitiba',0],
+  ['Masculino Adulto','Cansaders',1],['Masculino Adulto','Mauá AllStars',1],['Masculino Adulto','Brainrot Rugby',1],
+  ['Masculino Adulto','Marlene RFC',1],['Masculino Adulto','Wellington Ratos',1],['Masculino Adulto','SPAC Rugby',1],
+  ['Masculino Adulto','Golden Caps',1],['Masculino Adulto','Parrilla',1],['Masculino Adulto','Lasanha Rugby',1],
+  ['Juvenil Masculino','SPAC',1],['Juvenil Masculino','Leonardos',1],
+  ['Juvenil Feminino','SPAC',1],['Juvenil Feminino','Pasteur',1],
+  ['Universitário Feminino','ESPM',1],
+  ['Universitário Masculino','ESPM',1],['Universitário Masculino','FGV',1],
+  ['Vets','Velho Oeste Rugby',1],['Vets','SPAC Rugby',1],['Vets','PSP Vets',0],['Vets','Old Vitorians',1],
+  ['Vets','ComDores Rugby - União',1],['Vets','Band',1],['Vets','São Bacon',0]
+];
+document.getElementById('btnImportTeams').onclick = async ()=>{
+  const msg = document.getElementById('importTeamsMsg');
+  const key = (n,c)=> (c+'|'+n).trim().toLowerCase();
+  const have = new Set(TEAMS.map(t=>key(t.name,t.categoria)));
+  let added = 0;
+  msg.textContent = 'Importando…';
+  try{
+    for(const [categoria,name,ok] of SEED_TEAMS){
+      if(have.has(key(name,categoria))) continue;
+      await addDoc(collection(db,'teams'), { name, categoria, grupo:null, confirmado: !!ok, logoUrl:null });
+      added++;
+    }
+    msg.textContent = added ? `${added} times adicionados.` : 'Todos já estavam cadastrados.';
+  }catch(e){ msg.textContent = 'Erro ao importar: '+e.message; }
+};
+
 // ---------- JOGOS ----------
 function fillTeamSelects(){
   const a = document.getElementById('fMatchTeamA'), b = document.getElementById('fMatchTeamB');
@@ -458,7 +487,7 @@ function renderAdminLists(){
 
   const tEl = document.getElementById('adminTeamList');
   tEl.innerHTML = TEAMS.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(t=>
-    `<div class="admin-list-item"><div class="il"><b>${escapeHtml(t.name)}</b><span>${t.categoria}</span></div>
+    `<div class="admin-list-item"><div class="il"><b>${escapeHtml(t.name)}</b><span>${t.categoria}${t.confirmado===false?' · <b style="color:var(--gold)">a confirmar</b>':''}</span></div>
     <div class="controls">
       <input type="text" placeholder="grupo" style="width:48px;" value="${escapeHtml(t.grupo||'')}" data-grupo="${t.id}">
       <button class="icon-btn danger" data-del-team="${t.id}">remover</button>

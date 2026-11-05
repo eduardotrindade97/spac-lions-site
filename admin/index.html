@@ -48,13 +48,18 @@
       <div class="field"><label>Categoria</label>
         <select id="fTeamCat">
           <option>Masculino Adulto</option><option>Feminino Adulto</option><option>Vets</option>
-          <option>Juvenil</option><option>Universitário Masculino</option><option>Universitário Feminino</option>
+          <option>Juvenil Masculino</option><option>Juvenil Feminino</option><option>Universitário Masculino</option><option>Universitário Feminino</option>
         </select>
       </div>
       <div class="field"><label>Grupo (opcional)</label><input id="fTeamGrupo" placeholder="Ex: A"></div>
     </div>
     <button class="btn" id="btnAddTeam">Adicionar time</button>
     <p class="section-lead">Monte os grupos aqui (campo "grupo" editável direto na lista). Depois, na aba Jogos, gere os confrontos da fase de grupos automaticamente — e ajuste à vontade.</p>
+    <div class="start-box" style="margin:14px 0;">
+      <div class="start-info">Lista inicial de inscritos (27 times em 7 categorias). Só cria o que ainda não existe — pode clicar de novo sem duplicar. Times ainda sem confirmação entram marcados como "a confirmar".</div>
+      <button class="btn-ghost" id="btnImportTeams" type="button">Importar lista inicial de times</button>
+      <div class="msg" id="importTeamsMsg"></div>
+    </div>
     <div id="adminTeamList"></div>
   </div>
 
@@ -65,7 +70,7 @@
       <div class="field"><label>Categoria</label>
         <select id="fMatchCat">
           <option>Masculino Adulto</option><option>Feminino Adulto</option><option>Vets</option>
-          <option>Juvenil</option><option>Universitário Masculino</option><option>Universitário Feminino</option>
+          <option>Juvenil Masculino</option><option>Juvenil Feminino</option><option>Universitário Masculino</option><option>Universitário Feminino</option>
         </select>
       </div>
       <div class="field"><label>Fase</label>
