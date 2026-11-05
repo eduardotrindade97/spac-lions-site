@@ -346,7 +346,7 @@ function renderCronograma(){
       <div class="mtime">${m.horario||'--:--'}<span class="d">${m.data==='2026-12-13'?'Dom':'Sáb'}</span></div>
       <div class="mmid">
         <div class="mteams"><span class="status-dot ${dot}"></span>${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)}</div>
-        <div class="mmeta">${m.categoria} · ${faseLabel(m.fase)}${m.campo?(' · '+campoLabelHtml(m.campo)):''}${delayTag}</div>
+        <div class="mmeta">${m.categoria} · ${(m.rotulo||faseLabel(m.fase))}${m.campo?(' · '+campoLabelHtml(m.campo)):''}${delayTag}</div>
       </div>
       <div class="mscore">${scoreTxt}</div>
     </div>`;
@@ -403,7 +403,7 @@ function renderGrupos(){
   if(bracket.length===0){ bEl.innerHTML = '<p class="empty">Mata-mata ainda não definido.</p>'; return; }
   bEl.innerHTML = `<div class="rowlist">${bracket.map(m=>{
     const scoreTxt = (m.status!=='agendado') ? `${m.scoreA??0} – ${m.scoreB??0}` : (m.horario||'');
-    return `<div class="match-row"><div class="mmid"><div class="mteams">${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)}</div><div class="mmeta">${faseLabel(m.fase)}</div></div><div class="mscore">${scoreTxt}</div></div>`;
+    return `<div class="match-row"><div class="mmid"><div class="mteams">${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)}</div><div class="mmeta">${(m.rotulo||faseLabel(m.fase))}</div></div><div class="mscore">${scoreTxt}</div></div>`;
   }).join('')}</div>`;
 }
 
@@ -421,7 +421,7 @@ function renderPlacares(){
     return `<div class="match-row">
       <div class="mmid">
         <div class="mteams"><span class="status-dot ${dot}"></span>${teamName(m.teamAId,m.teamAName)} x ${teamName(m.teamBId,m.teamBName)}</div>
-        <div class="mmeta">${m.categoria} · ${faseLabel(m.fase)} ${tag}</div>
+        <div class="mmeta">${m.categoria} · ${(m.rotulo||faseLabel(m.fase))} ${tag}</div>
       </div>
       <div class="mscore">${m.scoreA??0} – ${m.scoreB??0}</div>
     </div>`;
@@ -506,7 +506,7 @@ function renderCampos(){
           ${scoreHtml}
           <div class="fmc-team"><div class="fmc-crest">${crestHtml(tB)}</div><div class="fmc-tname">${teamName(m.teamBId,m.teamBName)}</div></div>
         </div>
-        <div class="fmc-meta"><span class="status-dot ${dot}"></span>${m.categoria} · ${faseLabel(m.fase)}</div>
+        <div class="fmc-meta"><span class="status-dot ${dot}"></span>${m.categoria} · ${(m.rotulo||faseLabel(m.fase))}</div>
         ${delayLine}
       </div>`);
   });
